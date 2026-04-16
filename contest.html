@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Contest — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero { padding:48px 48px 32px; max-width:1300px; margin:0 auto; }
+.page-hero h1 { font-family:'DM Serif Display',serif; font-size:48px; color:var(--cream); margin-bottom:10px; }
+.page-hero p { font-family:'Crimson Pro',serif; font-size:17px; color:var(--cream-muted); max-width:560px; }
+
+/* LOBBY */
+.lobby { max-width:1300px; margin:0 auto; padding:0 48px 80px; }
+
+.lobby-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:32px; }
+
+.lobby-card {
+  background:var(--ink2);
+  border:1px solid var(--border-dim);
+  padding:32px;
+  transition:border-color 0.2s, background 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.lobby-card:hover { border-color:var(--border-mid); }
+
+.lc-eyebrow { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--amber); margin-bottom:12px; }
+.lc-title { font-family:'DM Serif Display',serif; font-size:26px; color:var(--cream); margin-bottom:10px; }
+.lc-desc { font-family:'Crimson Pro',serif; font-size:15px; color:var(--cream-muted); line-height:1.65; margin-bottom:24px; }
+
+.lc-bg-num {
+  position:absolute; right:20px; bottom:-10px;
+  font-family:'DM Serif Display',serif; font-size:120px; color:var(--amber); opacity:0.04; line-height:1;
+  pointer-events:none;
+}
+
+.room-code-input {
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  color:var(--cream);
+  font-family:'JetBrains Mono',monospace;
+  font-size:18px;
+  letter-spacing:0.2em;
+  padding:12px 16px;
+  outline:none;
+  width:100%;
+  text-transform:uppercase;
+  margin-bottom:12px;
+  caret-color:var(--amber);
+  text-align:center;
+}
+
+.room-code-input:focus { border-color:rgba(232,160,32,0.4); }
+
+.name-input {
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  color:var(--cream);
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  padding:10px 14px;
+  outline:none;
+  width:100%;
+  margin-bottom:12px;
+  caret-color:var(--amber);
+  transition:border-color 0.15s;
+}
+
+.name-input:focus { border-color:rgba(232,160,32,0.35); }
+.name-input::placeholder { color:var(--cream-muted); opacity:0.5; }
+
+/* CONTEST ROOM */
+.contest-room { display:none; max-width:1300px; margin:0 auto; padding:0 48px 80px; }
+.contest-room.show { display:block; }
+
+.room-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px 0;
+  border-bottom:1px solid var(--border-dim);
+  margin-bottom:24px;
+}
+
+.room-code-badge {
+  background:var(--ink3);
+  border:1px solid var(--border);
+  padding:8px 20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.rcb-label { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--cream-muted); }
+.rcb-code { font-family:'DM Serif Display',serif; font-size:22px; color:var(--amber); letter-spacing:0.2em; }
+
+.copy-code-btn {
+  font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+  padding:5px 12px; border:1px solid var(--border-dim); background:transparent; color:var(--cream-muted);
+  cursor:pointer; font-family:'JetBrains Mono',monospace; transition:all 0.15s;
+}
+.copy-code-btn:hover { border-color:var(--amber); color:var(--amber); }
+
+/* COUNTDOWN */
+.countdown-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.85);
+  z-index:500;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+
+.countdown-overlay.show { display:flex; }
+
+.countdown-num {
+  font-family:'DM Serif Display',serif;
+  font-size:160px;
+  color:var(--amber);
+  line-height:1;
+  animation:countScale 1s ease infinite;
+}
+
+@keyframes countScale {
+  0%,100%{transform:scale(1)} 50%{transform:scale(1.1)}
+}
+
+.countdown-lbl { font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--cream-muted); margin-top:16px; }
+
+/* RACERS */
+.racers-section {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:24px;
+}
+
+.racer-row {
+  background:var(--ink2);
+  border:1px solid var(--border-dim);
+  padding:16px 20px;
+  display:grid;
+  grid-template-columns:180px 1fr 80px 80px 60px;
+  align-items:center;
+  gap:16px;
+  transition:border-color 0.2s;
+}
+
+.racer-row.me { border-color:var(--border); }
+.racer-row.finished { border-color:rgba(74,158,106,0.3); }
+.racer-row.winner { border-color:var(--amber); background:rgba(232,160,32,0.04); }
+
+.racer-info { display:flex; align-items:center; gap:10px; }
+
+.racer-av {
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:600; flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.racer-name { font-size:12px; color:var(--cream-dim); }
+.racer-you { font-size:9px; color:var(--amber); margin-top:2px; }
+
+.racer-track { height:8px; background:var(--ink5); border-radius:1px; overflow:hidden; position:relative; }
+.racer-progress { height:100%; border-radius:1px; transition:width 0.5s ease; position:relative; }
+.racer-progress::after { content:''; position:absolute; right:0; top:0; bottom:0; width:3px; background:rgba(255,255,255,0.3); }
+
+.racer-wpm { font-family:'DM Serif Display',serif; font-size:20px; color:var(--amber); text-align:center; }
+.racer-acc { font-size:11px; color:var(--cream-muted); text-align:center; }
+.racer-rank { font-family:'DM Serif Display',serif; font-size:20px; color:var(--cream-muted); text-align:center; }
+.racer-rank.gold { color:#f5c040; }
+
+/* CONTEST PASSAGE + TYPING */
+.contest-arena {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:24px;
+}
+
+.ca-panel { background:var(--ink2); border:1px solid var(--border-dim); overflow:hidden; }
+.ca-head { background:var(--ink3); border-bottom:1px solid var(--border-dim); padding:11px 18px; display:flex; align-items:center; justify-content:space-between; }
+.ca-lbl { font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:var(--amber); display:flex; align-items:center; gap:8px; }
+.ca-lbl::before { content:''; width:5px; height:5px; background:var(--amber); border-radius:50%; opacity:0.5; }
+.ca-body { padding:20px; }
+
+.contest-passage {
+  font-family:'Crimson Pro',serif;
+  font-size:16px;
+  line-height:2.2;
+  color:var(--cream-muted);
+  user-select:none;
+  margin-bottom:16px;
+}
+
+.cp-word { display:inline; }
+.cp-word.cur { background:rgba(232,160,32,0.16); color:var(--cream); border-radius:2px; padding:0 2px; }
+.cp-word.ok { color:var(--green); }
+.cp-word.bad { color:var(--red); }
+
+.contest-ghost {
+  background:var(--ink3); border:1px solid var(--border-dim); padding:12px; font-family:'JetBrains Mono',monospace;
+  font-size:12.5px; line-height:1.9; min-height:70px; margin-bottom:12px; overflow:hidden;
+}
+
+.cg { color:var(--cream-muted); }
+.cg.ok { color:var(--green); }
+.cg.err { color:var(--red); background:rgba(192,69,58,0.1); }
+.cg.curs { border-left:2px solid var(--amber); animation:blink 1s step-start infinite; }
+
+.contest-input {
+  width:100%; background:var(--ink3); border:1px solid var(--border-dim); color:var(--cream);
+  font-family:'JetBrains Mono',monospace; font-size:13px; padding:12px; outline:none; resize:none;
+  min-height:90px; line-height:1.7; caret-color:var(--amber); transition:border-color 0.15s;
+}
+
+.contest-input:focus { border-color:rgba(232,160,32,0.35); }
+.contest-input:disabled { opacity:0.5; }
+
+/* TIMER BAR */
+.contest-timer {
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:12px 20px;
+  background:var(--ink3);
+  border-bottom:1px solid var(--border-dim);
+}
+
+.ct-track { flex:1; height:3px; background:var(--ink5); }
+.ct-fill { height:100%; background:var(--amber); transition:width 1s linear; }
+.ct-time { font-family:'DM Serif Display',serif; font-size:22px; color:var(--amber); min-width:44px; text-align:right; }
+
+/* RESULTS */
+.results-section {
+  display:none;
+  background:var(--ink2);
+  border:1px solid var(--border);
+  padding:40px;
+  text-align:center;
+  margin-top:24px;
+}
+
+.results-section.show { display:block; }
+
+.winner-banner {
+  font-family:'DM Serif Display',serif;
+  font-size:48px;
+  color:var(--amber);
+  margin-bottom:8px;
+}
+
+.winner-sub { font-family:'Crimson Pro',serif; font-size:17px; color:var(--cream-muted); margin-bottom:32px; }
+
+.podium { display:flex; justify-content:center; align-items:flex-end; gap:12px; margin-bottom:32px; }
+
+.podium-item { text-align:center; }
+.podium-block {
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  border:1px solid var(--border-dim); padding:16px 24px; margin-bottom:8px;
+}
+
+.podium-rank-icon { font-size:24px; color:var(--amber); margin-bottom:8px; font-family:'DM Serif Display',serif; }
+.podium-name { font-size:12px; color:var(--cream-dim); }
+.podium-wpm { font-family:'DM Serif Display',serif; font-size:32px; color:var(--amber); }
+.podium-acc { font-size:10px; color:var(--cream-muted); }
+
+/* WAITING ROOM */
+.waiting-room { text-align:center; padding:48px 24px; }
+.wr-title { font-family:'DM Serif Display',serif; font-size:32px; color:var(--cream); margin-bottom:12px; }
+.wr-sub { font-family:'Crimson Pro',serif; font-size:16px; color:var(--cream-muted); margin-bottom:28px; }
+
+.players-list { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-bottom:28px; }
+
+.player-chip {
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  padding:10px 18px;
+  display:flex; align-items:center; gap:10px;
+  transition:border-color 0.2s;
+}
+
+.player-chip.ready { border-color:rgba(74,158,106,0.4); }
+.pc-av { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; font-family:'JetBrains Mono',monospace; }
+.pc-name { font-size:11px; color:var(--cream-dim); }
+.pc-status { font-size:9px; letter-spacing:0.1em; text-transform:uppercase; }
+.pc-status.ready { color:var(--green); }
+.pc-status.waiting { color:var(--cream-muted); }
+
+.pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 1.4s ease-in-out infinite; }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<!-- LOBBY (shown first) -->
+<div id="lobby-section">
+  <div class="page-hero">
+    <div class="eyebrow">Multiplayer</div>
+    <h1>Contest with Friends</h1>
+    <p>Create a private room, share the code, and race head-to-head. Watch each other's progress in real-time.</p>
+  </div>
+
+  <div class="lobby">
+    <div class="lobby-grid">
+
+      <!-- CREATE -->
+      <div class="lobby-card">
+        <div class="lc-bg-num">1</div>
+        <div class="lc-eyebrow">Host a race</div>
+        <div class="lc-title">Create a Room</div>
+        <p class="lc-desc">Generate a unique room code, pick a passage and mode, then share the code with friends. You control when the race starts.</p>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:8px">Your Name</div>
+          <input class="name-input" id="create-name" type="text" placeholder="your_username" value="">
+        </div>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:8px">Passage Category</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="cat-btns">
+            <button class="pbtn on" onclick="selCat(this,'tech')">Tech</button>
+            <button class="pbtn" onclick="selCat(this,'literature')">Literature</button>
+            <button class="pbtn" onclick="selCat(this,'science')">Science</button>
+            <button class="pbtn" onclick="selCat(this,'quotes')">Quotes</button>
+            <button class="pbtn" onclick="selCat(this,'code')">Code</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:8px">Duration</div>
+          <div style="display:flex;gap:6px">
+            <button class="pbtn on" onclick="selDur(this,60)">60s</button>
+            <button class="pbtn" onclick="selDur(this,30)">30s</button>
+            <button class="pbtn" onclick="selDur(this,120)">2 min</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="createRoom()" style="font-size:11px;padding:13px 28px;width:100%">Create Room →</button>
+      </div>
+
+      <!-- JOIN -->
+      <div class="lobby-card">
+        <div class="lc-bg-num">2</div>
+        <div class="lc-eyebrow">Join a race</div>
+        <div class="lc-title">Join a Room</div>
+        <p class="lc-desc">Got a room code from a friend? Enter it below to jump straight into their lobby and wait for the host to start.</p>
+
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:8px">Your Name</div>
+          <input class="name-input" id="join-name" type="text" placeholder="your_username">
+        </div>
+
+        <div style="margin-bottom:20px">
+          <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:8px">Room Code</div>
+          <input class="room-code-input" id="join-code" type="text" placeholder="ABCD" maxlength="6" oninput="this.value=this.value.toUpperCase()">
+        </div>
+
+        <button class="btn-primary" onclick="joinRoom()" style="font-size:11px;padding:13px 28px;width:100%;background:transparent;border:1px solid var(--border);color:var(--cream-dim)" onmouseover="this.style.background='rgba(232,160,32,0.06)';this.style.borderColor='var(--amber)';this.style.color='var(--amber)'" onmouseout="this.style.background='transparent';this.style.borderColor='var(--border)';this.style.color='var(--cream-dim)'">Join Room →</button>
+
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border-dim)">
+          <div style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:12px">How it works</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--cream-muted)"><span style="color:var(--amber);font-family:'DM Serif Display',serif;font-size:16px;line-height:1;flex-shrink:0">1</span>Host creates a room and shares the 4-letter code</div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--cream-muted)"><span style="color:var(--amber);font-family:'DM Serif Display',serif;font-size:16px;line-height:1;flex-shrink:0">2</span>Friends join using the code — up to 6 players</div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--cream-muted)"><span style="color:var(--amber);font-family:'DM Serif Display',serif;font-size:16px;line-height:1;flex-shrink:0">3</span>Host starts a 3-second countdown, race begins</div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--cream-muted)"><span style="color:var(--amber);font-family:'DM Serif Display',serif;font-size:16px;line-height:1;flex-shrink:0">4</span>See everyone's live progress and WPM in real-time</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEST ROOM -->
+<div class="contest-room" id="contest-section">
+
+  <!-- WAITING ROOM -->
+  <div id="waiting-room-section" style="padding:0 48px;max-width:1300px;margin:0 auto 24px">
+    <div class="room-header">
+      <div>
+        <div class="eyebrow" id="room-role-lbl">Your room</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--cream)" id="room-heading">Waiting for players...</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="room-code-badge">
+          <div>
+            <div class="rcb-label">Room Code</div>
+            <div class="rcb-code" id="room-code-display">----</div>
+          </div>
+        </div>
+        <button class="copy-code-btn" onclick="copyRoomCode()">Copy Code</button>
+        <button class="pbtn" onclick="leaveRoom()">Leave</button>
+      </div>
+    </div>
+
+    <div class="waiting-room" id="waiting-room">
+      <div class="wr-title">Lobby</div>
+      <p class="wr-sub" id="wr-sub">Waiting for players to join...</p>
+      <div class="players-list" id="players-list"></div>
+      <div id="host-controls" style="display:none">
+        <button class="btn-primary" onclick="startCountdown()" id="start-btn" style="font-size:11px;padding:13px 32px;margin-bottom:12px" disabled>Start Race (need 2+ players)</button>
+        <p style="font-size:11px;color:var(--cream-muted)">Waiting for at least 1 more player to join...</p>
+      </div>
+      <div id="guest-wait" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:12px;color:var(--cream-muted)">
+          <div class="pulse-dot"></div>
+          Waiting for host to start the race...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RACE AREA -->
+  <div id="race-area" style="display:none;padding:0 48px;max-width:1300px;margin:0 auto">
+
+    <!-- Live Race Timer -->
+    <div style="background:var(--ink2);border:1px solid var(--border-dim);margin-bottom:16px">
+      <div class="contest-timer">
+        <span style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--cream-muted)">Race time remaining</span>
+        <div class="ct-track"><div class="ct-fill" id="race-timer-fill" style="width:100%"></div></div>
+        <div class="ct-time" id="race-timer-val">60s</div>
+      </div>
+    </div>
+
+    <!-- RACERS PROGRESS -->
+    <div class="racers-section" id="racers-section"></div>
+
+    <!-- CONTEST ARENA -->
+    <div class="contest-arena">
+      <div class="ca-panel">
+        <div class="ca-head">
+          <div class="ca-lbl">Passage</div>
+          <span style="font-size:9px;color:var(--cream-muted)" id="c-prog">0%</span>
+        </div>
+        <div class="ca-body">
+          <div class="contest-passage" id="contest-passage"></div>
+        </div>
+      </div>
+
+      <div class="ca-panel">
+        <div class="ca-head">
+          <div class="ca-lbl">Your Typing</div>
+          <div style="display:flex;gap:12px">
+            <span style="font-size:9px;color:var(--amber)" id="c-wpm-live">0 WPM</span>
+            <span style="font-size:9px;color:var(--green)" id="c-acc-live">100%</span>
+          </div>
+        </div>
+        <div class="ca-body">
+          <div class="contest-ghost" id="contest-ghost"></div>
+          <textarea class="contest-input" id="contest-input" placeholder="// start typing..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" disabled></textarea>
+          <div style="margin-top:8px;font-size:10px;color:var(--cream-muted);display:flex;justify-content:space-between">
+            <span id="c-sdot-txt">ready</span>
+            <span id="c-chars-out">0 / — chars</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-section" id="results-section">
+      <div class="winner-banner" id="winner-banner">🏆 Race Over!</div>
+      <div class="winner-sub" id="winner-sub">Final results</div>
+      <div class="podium" id="podium"></div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="btn-primary" onclick="raceAgain()" style="font-size:11px;padding:12px 28px">Race Again →</button>
+        <button class="btn-ghost" onclick="leaveRoom()" style="font-size:11px;padding:12px 28px">Leave Room</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTDOWN OVERLAY -->
+<div class="countdown-overlay" id="countdown-overlay">
+  <div class="countdown-num" id="countdown-num">3</div>
+  <div class="countdown-lbl">Get ready...</div>
+</div>
+
+<div style="height:40px"></div>
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script src="api.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('contest');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+// Get username from localStorage if logged in
+const currentUser = JSON.parse(localStorage.getItem('tf_current_user')||'null');
+if(currentUser){
+  document.getElementById('create-name').value = currentUser.name;
+  document.getElementById('join-name').value = currentUser.name;
+}
+
+const AV_COLORS_C = ['#185FA5','#1D9E75','#D85A30','#7F77DD','#639922','#BA7517','#E24B4A'];
+function getAv(name){ return AV_COLORS_C[name.charCodeAt(0)%AV_COLORS_C.length]; }
+
+let selectedCat = 'tech';
+let selectedDur = 60;
+let roomCode = '';
+let isHost = false;
+let myName = '';
+let players = [];
+let passage = '';
+let pwords = [];
+
+// Simulated "other players" for demo
+const BOT_NAMES = ['KeyWizard','SpeedDemon','SwiftFox','RapidType','QuickKeys'];
+let bots = [];
+let botIntervals = [];
+
+function selCat(btn, c){
+  document.querySelectorAll('#cat-btns .pbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); selectedCat=c;
+}
+
+function selDur(btn, d){
+  btn.parentElement.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); selectedDur=d;
+}
+
+function genCode(){ return Math.random().toString(36).substring(2,6).toUpperCase(); }
+
+function createRoom(){
+  const name = document.getElementById('create-name').value.trim() || 'Player1';
+  myName = name;
+  isHost = true;
+  roomCode = genCode();
+  passage = PASSAGES[selectedCat][Math.floor(Math.random()*PASSAGES[selectedCat].length)];
+  pwords = passage.split(' ');
+  players = [{id:'me',name,av:getAv(name),wpm:0,acc:100,progress:0,done:false,isMe:true}];
+  enterRoom();
+}
+
+function joinRoom(){
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const name = document.getElementById('join-name').value.trim() || 'Guest';
+  if(code.length<3){ alert('Please enter a room code.'); return; }
+  myName = name;
+  isHost = false;
+  roomCode = code;
+  // Simulate joining existing room with bots as other players
+  passage = PASSAGES['tech'][0];
+  pwords = passage.split(' ');
+  const numBots = Math.floor(Math.random()*2)+1;
+  players = [{id:'me',name,av:getAv(name),wpm:0,acc:100,progress:0,done:false,isMe:true}];
+  for(let i=0;i<numBots;i++){
+    const bn=BOT_NAMES[i];
+    players.push({id:'bot'+i,name:bn,av:getAv(bn),wpm:0,acc:Math.floor(Math.random()*15)+85,progress:0,done:false,isBot:true});
+  }
+  enterRoom();
+}
+
+function enterRoom(){
+  document.getElementById('lobby-section').style.display='none';
+  document.getElementById('contest-section').classList.add('show');
+  document.getElementById('room-code-display').textContent=roomCode;
+  document.getElementById('room-role-lbl').textContent=isHost?'You are the host':'Joined room';
+  renderWaitingRoom();
+  // Simulate a 3rd player joining after 2s
+  if(isHost){
+    setTimeout(()=>{
+      const bn=BOT_NAMES[0];
+      players.push({id:'bot0',name:bn,av:getAv(bn),wpm:0,acc:92,progress:0,done:false,isBot:true});
+      renderWaitingRoom();
+      setTimeout(()=>{
+        const bn2=BOT_NAMES[1];
+        players.push({id:'bot1',name:bn2,av:getAv(bn2),wpm:0,acc:88,progress:0,done:false,isBot:true});
+        renderWaitingRoom();
+      },2500);
+    },2000);
+  }
+}
+
+function renderWaitingRoom(){
+  const n=players.length;
+  document.getElementById('wr-sub').textContent=n+' player'+(n!==1?'s':'')+' in lobby';
+  document.getElementById('players-list').innerHTML=players.map(p=>`
+    <div class="player-chip ready">
+      <div class="pc-av" style="background:${p.av}20;color:${p.av};border:1px solid ${p.av}40">${p.name.slice(0,2).toUpperCase()}</div>
+      <div>
+        <div class="pc-name">${p.name}${p.isMe?' (you)':''}</div>
+        <div class="pc-status ready">Ready</div>
+      </div>
+    </div>`).join('');
+  if(isHost){
+    document.getElementById('host-controls').style.display='block';
+    document.getElementById('guest-wait').style.display='none';
+    const startBtn=document.getElementById('start-btn');
+    const canStart=n>=2;
+    startBtn.disabled=!canStart;
+    startBtn.textContent=canStart?'Start Race →':'Start Race (need 2+ players)';
+    document.querySelector('#host-controls p').textContent=canStart?'All players are ready!':'Waiting for at least 1 more player to join...';
+  } else {
+    document.getElementById('host-controls').style.display='none';
+    document.getElementById('guest-wait').style.display='block';
+    // Simulate host starting after 3s
+    if(!window._guestStarted){
+      window._guestStarted=true;
+      setTimeout(()=>startCountdown(),3000);
+    }
+  }
+}
+
+function startCountdown(){
+  const overlay = document.getElementById('countdown-overlay');
+  const numEl = document.getElementById('countdown-num');
+  overlay.classList.add('show');
+  let n=3;
+  numEl.textContent=n;
+  const interval=setInterval(()=>{
+    n--;
+    if(n<=0){
+      clearInterval(interval);
+      numEl.textContent='GO!';
+      setTimeout(()=>{ overlay.classList.remove('show'); startRace(); },600);
+    } else {
+      numEl.textContent=n;
+    }
+  },1000);
+}
+
+let raceT0=null, raceInt=null, raceDone=false;
+let myTChars=0, myCChars=0, myErrs=0, myWIdx=0;
+
+function startRace(){
+  document.getElementById('waiting-room-section').style.display='none';
+  document.getElementById('race-area').style.display='block';
+  raceT0=Date.now(); raceDone=false;
+  // Setup passage
+  document.getElementById('contest-passage').innerHTML=pwords.map((w,i)=>`<span class="cp-word" id="cw-${i}">${w}</span> `).join('');
+  renderContestGhost();
+  const ci=document.getElementById('contest-input');
+  ci.disabled=false; ci.focus();
+  // Start bots
+  startBots();
+  // Timer
+  raceInt=setInterval(()=>{
+    const elapsed=Math.round((Date.now()-raceT0)/1000);
+    const rem=selectedDur-elapsed;
+    document.getElementById('race-timer-val').textContent=Math.max(0,rem)+'s';
+    document.getElementById('race-timer-fill').style.width=Math.max(0,(rem/selectedDur)*100)+'%';
+    if(rem<=0) endRace();
+    updateRacerRow('me');
+    renderRacers();
+  },500);
+}
+
+function startBots(){
+  players.filter(p=>p.isBot).forEach(p=>{
+    const targetWPM=Math.floor(Math.random()*60)+40;
+    const charsPerSec=targetWPM*5/60;
+    const int=setInterval(()=>{
+      if(raceDone){ clearInterval(int); return; }
+      p.progress=Math.min(1,p.progress+(charsPerSec/passage.length));
+      p.wpm=Math.round(targetWPM*(0.9+Math.random()*0.2));
+      p.acc=Math.max(80,p.acc-(Math.random()>0.9?1:0));
+      if(p.progress>=1){ p.done=true; p.progress=1; clearInterval(int); }
+      renderRacers();
+    },500);
+    botIntervals.push(int);
+  });
+}
+
+function renderRacers(){
+  const sorted=[...players].sort((a,b)=>b.progress-a.progress);
+  const colors=['#f5c040','#c0c8d4','#c87840'];
+  document.getElementById('racers-section').innerHTML=sorted.map((p,i)=>{
+    const pct=Math.round(p.progress*100);
+    const isWin=p.done&&i===0;
+    return `<div class="racer-row ${p.isMe?'me':''} ${p.done?'finished':''} ${isWin?'winner':''}">
+      <div class="racer-info">
+        <div class="racer-av" style="background:${p.av}20;color:${p.av};border:1px solid ${p.av}40">${p.name.slice(0,2).toUpperCase()}</div>
+        <div>
+          <div class="racer-name">${p.name}${p.isMe?' (you)':''}</div>
+          ${p.done?'<div style="font-size:9px;color:var(--green);letter-spacing:0.08em">FINISHED</div>':''}
+        </div>
+      </div>
+      <div>
+        <div class="racer-track"><div class="racer-progress" style="width:${pct}%;background:${p.isMe?'var(--amber)':p.av}"></div></div>
+        <div style="font-size:9px;color:var(--cream-muted);margin-top:3px;text-align:right">${pct}%</div>
+      </div>
+      <div class="racer-wpm">${p.wpm||'—'}</div>
+      <div class="racer-acc">${p.acc}%</div>
+      <div class="racer-rank" style="${i===0?'color:#f5c040':''}">${i===0?'◆':i+1}</div>
+    </div>`;
+  }).join('');
+}
+
+// Contest typing
+const ci = document.getElementById('contest-input');
+ci.addEventListener('input',()=>{
+  if(raceDone) return;
+  const val=ci.value;
+  myTChars=val.length; myCChars=0; myErrs=0;
+  for(let i=0;i<val.length;i++){
+    if(val[i]===passage[i]) myCChars++;
+    else { myErrs++; if(passage[i]) {} }
+  }
+  const e=(Date.now()-raceT0)/60000;
+  const w=e>0?Math.round(myCChars/5/e):0;
+  const a=myTChars>0?Math.round((myCChars/myTChars)*100):100;
+  // Update my player
+  const me=players.find(p=>p.isMe);
+  if(me){ me.progress=val.length/passage.length; me.wpm=w; me.acc=a; }
+  document.getElementById('c-wpm-live').textContent=w+' WPM';
+  document.getElementById('c-acc-live').textContent=a+'%';
+  document.getElementById('c-chars-out').textContent=val.length+' / '+passage.length+' chars';
+  document.getElementById('c-prog').textContent=Math.round((val.length/passage.length)*100)+'%';
+
+  const wi=val.split(' ').length-1;
+  if(wi!==myWIdx){
+    const el=document.getElementById('cw-'+myWIdx);
+    if(el){ el.classList.remove('cur'); const ps=val.split(' '); ps.pop(); el.classList.add(ps[ps.length-1]===pwords[myWIdx]?'ok':'bad'); }
+    myWIdx=wi;
+    const cel=document.getElementById('cw-'+myWIdx); if(cel) cel.classList.add('cur');
+  }
+  renderContestGhost();
+  if(val.length>=passage.length){ if(me) me.done=true; endRace(); }
+});
+
+function renderContestGhost(){
+  const val=ci.value;
+  let h='';
+  for(let i=0;i<Math.min(passage.length,200);i++){
+    const ch=passage[i]===' '?'&nbsp;':passage[i];
+    if(i<val.length) h+=`<span class="cg ${val[i]===passage[i]?'ok':'err'}">${ch}</span>`;
+    else if(i===val.length) h+=`<span class="cg curs">${ch}</span>`;
+    else h+=`<span class="cg">${ch}</span>`;
+  }
+  document.getElementById('contest-ghost').innerHTML=h;
+}
+
+function updateRacerRow(id){
+  const me=players.find(p=>p.isMe);
+  if(!me) return;
+  const e=(Date.now()-raceT0)/60000;
+  me.wpm=e>0?Math.round(myCChars/5/e):0;
+}
+
+function endRace(){
+  if(raceDone) return;
+  raceDone=true;
+  clearInterval(raceInt);
+  botIntervals.forEach(clearInterval);
+  ci.disabled=true;
+  document.getElementById('c-sdot-txt').textContent='race finished!';
+  const sorted=[...players].sort((a,b)=>b.wpm-a.wpm);
+  const winner=sorted[0];
+  const me=players.find(p=>p.isMe);
+  document.getElementById('winner-banner').textContent=winner.isMe?'🏆 You Won!':'🏆 '+winner.name+' Won!';
+  document.getElementById('winner-sub').textContent=winner.isMe?'Excellent typing! You came first.':'Well done — see the full standings below.';
+  const podiumColors=['#f5c040','#c0c8d4','#c87840'];
+  const podiumIcons=['◆','◈','◉'];
+  document.getElementById('podium').innerHTML=sorted.slice(0,3).map((p,i)=>`
+    <div class="podium-item">
+      <div class="podium-block" style="height:${140-i*30}px;background:var(--ink3);border-color:${p.isMe?'var(--amber)':'var(--border-dim)'}">
+        <div class="podium-rank-icon" style="color:${podiumColors[i]||'var(--cream-muted)'}">${podiumIcons[i]}</div>
+        <div class="podium-name" style="${p.isMe?'color:var(--amber)':''}">${p.name}${p.isMe?' (you)':''}</div>
+        <div class="podium-wpm" style="color:${podiumColors[i]||'var(--cream)'}">${p.wpm}</div>
+        <div class="podium-acc">${p.acc}% acc</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('results-section').classList.add('show');
+  // Save to history
+  if(me){
+    saveSession({date:Date.now(),wpm:me.wpm,acc:me.acc,errors:myErrs,time:selectedDur,cat:'contest',mode:'contest'})
+      .catch(err => console.error('Failed to save contest session', err));
+  }
+}
+
+function raceAgain(){
+  document.getElementById('results-section').classList.remove('show');
+  document.getElementById('race-area').style.display='none';
+  document.getElementById('waiting-room-section').style.display='block';
+  players.forEach(p=>{ p.wpm=0; p.acc=p.isMe?100:Math.floor(Math.random()*15)+85; p.progress=0; p.done=false; });
+  myCChars=0; myTChars=0; myErrs=0; myWIdx=0; raceDone=false;
+  ci.value=''; ci.disabled=true;
+  botIntervals=[];
+  renderWaitingRoom();
+}
+
+function leaveRoom(){
+  botIntervals.forEach(clearInterval);
+  clearInterval(raceInt);
+  document.getElementById('lobby-section').style.display='block';
+  document.getElementById('contest-section').classList.remove('show');
+  document.getElementById('contest-section').style.display='none';
+  setTimeout(()=>document.getElementById('contest-section').style.display='',100);
+  document.getElementById('race-area').style.display='none';
+  document.getElementById('waiting-room-section').style.display='block';
+  document.getElementById('results-section').classList.remove('show');
+  window._guestStarted=false;
+}
+
+function copyRoomCode(){
+  navigator.clipboard.writeText(roomCode).then(()=>{ 
+    document.querySelector('.copy-code-btn').textContent='Copied!';
+    setTimeout(()=>document.querySelector('.copy-code-btn').textContent='Copy Code',1800);
+  });
+}
+</script>
+</body>
+</html>

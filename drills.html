@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Drills — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero { padding: 52px 48px 36px; max-width: 1300px; margin: 0 auto; }
+.page-hero h1 { font-family: 'DM Serif Display', serif; font-size: 44px; color: var(--cream); margin-bottom: 10px; }
+.page-hero p { font-family: 'Crimson Pro', serif; font-size: 17px; color: var(--cream-muted); max-width: 560px; }
+
+.drills-layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 48px 80px;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+/* DRILL LIST SIDEBAR */
+.drill-sidebar { display: flex; flex-direction: column; gap: 6px; }
+
+.drill-group-title {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+  padding: 12px 0 6px;
+  border-bottom: 1px solid var(--border-dim);
+  margin-top: 10px;
+}
+
+.drill-item {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+}
+
+.drill-item:hover { border-color: var(--border-mid); background: var(--ink3); }
+.drill-item.active { border-color: var(--amber); background: rgba(232,160,32,0.05); }
+
+.di-name { font-size: 12px; color: var(--cream-dim); letter-spacing: 0.04em; }
+.di-diff { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.di-diff.easy { color: var(--green); }
+.di-diff.medium { color: var(--amber); }
+.di-diff.hard { color: var(--red); }
+
+/* DRILL ARENA */
+.drill-arena { display: flex; flex-direction: column; gap: 16px; }
+
+.drill-info {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.di-left h2 { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--cream); margin-bottom: 8px; }
+.di-left p { font-family: 'Crimson Pro', serif; font-size: 15px; color: var(--cream-muted); max-width: 380px; }
+
+.drill-stats-mini { display: flex; gap: 20px; }
+.dsm { text-align: center; }
+.dsm-val { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--amber); }
+.dsm-lbl { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-muted); margin-top: 2px; }
+
+/* TEXT DISPLAY */
+.drill-text-wrap {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 28px;
+}
+
+.drill-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  line-height: 2.2;
+  letter-spacing: 0.05em;
+  color: var(--cream-muted);
+  margin-bottom: 24px;
+  min-height: 80px;
+}
+
+.dt-char { display: inline-block; }
+.dt-char.ok { color: var(--green); }
+.dt-char.err { color: var(--red); background: rgba(192,69,58,0.1); }
+.dt-char.cur { border-left: 2px solid var(--amber); animation: blink 1s step-start infinite; }
+
+.drill-input {
+  width: 100%;
+  background: var(--ink3);
+  border: 1px solid var(--border-dim);
+  color: var(--cream);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  padding: 14px 18px;
+  outline: none;
+  transition: border-color 0.15s;
+  caret-color: var(--amber);
+}
+
+.drill-input:focus { border-color: rgba(232,160,32,0.35); }
+.drill-input.err { border-color: rgba(192,69,58,0.4); }
+
+.drill-progress-wrap {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dp-track { flex: 1; height: 3px; background: var(--ink5); }
+.dp-fill { height: 100%; background: var(--amber); transition: width 0.3s; }
+.dp-pct { font-size: 10px; color: var(--amber); min-width: 32px; text-align: right; }
+
+/* KEYBOARD HEATMAP */
+.heatmap-wrap {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 24px 28px;
+}
+
+.hm-title {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 18px;
+}
+
+.keyboard { display: flex; flex-direction: column; gap: 6px; }
+
+.key-row { display: flex; gap: 5px; }
+
+.key {
+  width: 44px;
+  height: 40px;
+  background: var(--ink4);
+  border: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--cream-muted);
+  border-radius: 3px;
+  transition: all 0.3s;
+  position: relative;
+  cursor: default;
+}
+
+.key.wide { width: 66px; }
+.key.wider { width: 88px; }
+.key.space { width: 260px; }
+
+.key.hot-1 { background: rgba(74,158,106,0.15); border-color: rgba(74,158,106,0.3); color: var(--green); }
+.key.hot-2 { background: rgba(232,160,32,0.12); border-color: rgba(232,160,32,0.3); color: var(--amber); }
+.key.hot-3 { background: rgba(192,69,58,0.15); border-color: rgba(192,69,58,0.35); color: var(--red); }
+.key.cur-key { box-shadow: 0 0 0 2px var(--amber); }
+
+/* DRILL COMPLETE */
+.drill-complete {
+  display: none;
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  padding: 40px;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.drill-complete.show { display: flex; }
+.dc-score { font-family: 'DM Serif Display', serif; font-size: 64px; color: var(--amber); line-height: 1; }
+.dc-lbl { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cream-muted); }
+.dc-row { display: flex; gap: 32px; }
+.dc-s { text-align: center; }
+.dc-sv { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--cream); }
+.dc-sl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cream-muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div class="eyebrow">Skill building</div>
+  <h1>Targeted Drills</h1>
+  <p>Isolate your weak spots. Drill home row, bigrams, numbers, symbols — then return to practice and feel the difference.</p>
+</div>
+
+<div class="drills-layout">
+
+  <!-- SIDEBAR -->
+  <div class="drill-sidebar">
+    <div class="drill-group-title">Foundation</div>
+    <div class="drill-item active" onclick="loadDrill(this,'homerow','Home Row','asdf jkl — the foundation of all touch typing',false)">
+      <span class="di-name">Home Row</span><span class="di-diff easy">Easy</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'toprow','Top Row','qwerty uiop — reach up cleanly',false)">
+      <span class="di-name">Top Row</span><span class="di-diff easy">Easy</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'bottomrow','Bottom Row','zxcvbnm — the awkward reach down',false)">
+      <span class="di-name">Bottom Row</span><span class="di-diff medium">Medium</span>
+    </div>
+
+    <div class="drill-group-title">Characters</div>
+    <div class="drill-item" onclick="loadDrill(this,'numbers','Numbers','Numeral fluency — typing digits without looking',false)">
+      <span class="di-name">Numbers 0–9</span><span class="di-diff medium">Medium</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'punctuation','Punctuation','Commas, periods, semicolons, colons — precision chars',false)">
+      <span class="di-name">Punctuation</span><span class="di-diff medium">Medium</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'capitals','Capitals','Shift key timing and capital letter accuracy',false)">
+      <span class="di-name">Capital Letters</span><span class="di-diff medium">Medium</span>
+    </div>
+
+    <div class="drill-group-title">Speed Training</div>
+    <div class="drill-item" onclick="loadDrill(this,'common','Common Words','The 200 most-used English words — own them cold',false)">
+      <span class="di-name">Common Words</span><span class="di-diff easy">Easy</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'bigrams','Bigrams','High-frequency letter pairs — th he in er an re',false)">
+      <span class="di-name">Bigrams</span><span class="di-diff hard">Hard</span>
+    </div>
+    <div class="drill-item" onclick="loadDrill(this,'code','Code Symbols','Brackets, braces, pipes, arrows — dev essentials',true)">
+      <span class="di-name">Code Symbols</span><span class="di-diff hard">Hard</span>
+    </div>
+  </div>
+
+  <!-- ARENA -->
+  <div class="drill-arena">
+    <div class="drill-info">
+      <div class="di-left">
+        <h2 id="d-title">Home Row</h2>
+        <p id="d-desc">asdf jkl — the foundation of all touch typing</p>
+      </div>
+      <div class="drill-stats-mini">
+        <div class="dsm"><div class="dsm-val" id="d-wpm">0</div><div class="dsm-lbl">WPM</div></div>
+        <div class="dsm"><div class="dsm-val" id="d-acc">—</div><div class="dsm-lbl">Acc%</div></div>
+        <div class="dsm"><div class="dsm-val" id="d-streak">0</div><div class="dsm-lbl">Streak</div></div>
+      </div>
+    </div>
+
+    <div class="drill-text-wrap">
+      <div class="drill-text" id="d-text"></div>
+      <input class="drill-input" id="d-input" placeholder="type the drill text..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <div class="drill-progress-wrap">
+        <div class="dp-track"><div class="dp-fill" id="dp-fill" style="width:0%"></div></div>
+        <div class="dp-pct" id="dp-pct">0%</div>
+        <button class="btn-outline" onclick="resetDrill()" style="font-size:9px;padding:4px 12px">Restart</button>
+      </div>
+    </div>
+
+    <div class="drill-complete" id="d-complete">
+      <div class="dc-score" id="dc-wpm">0</div>
+      <div class="dc-lbl">words per minute</div>
+      <div class="dc-row">
+        <div class="dc-s"><div class="dc-sv" id="dc-acc">—%</div><div class="dc-sl">Accuracy</div></div>
+        <div class="dc-s"><div class="dc-sv" id="dc-errs">0</div><div class="dc-sl">Errors</div></div>
+        <div class="dc-s"><div class="dc-sv" id="dc-time">0s</div><div class="dc-sl">Time</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button class="btn-primary" onclick="resetDrill()" style="font-size:10px;padding:10px 22px">Drill Again →</button>
+        <a href="practice.html" class="btn-ghost" style="font-size:10px;padding:10px 22px">Go to Practice</a>
+      </div>
+    </div>
+
+    <!-- KEYBOARD HEATMAP -->
+    <div class="heatmap-wrap">
+      <div class="hm-title">▸ Keyboard accuracy heatmap — green = accurate, red = errors</div>
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('drills');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+const DRILL_EXTRA = {
+  code: "() {} [] <> => != == && || ++ -- += -= *= /= :: -> | & ^ % @ # $ ~ ` \\ /",
+};
+
+let dText='', dT0=null, dInt=null, dErrs=0, dCorrect=0, dTotal=0, dDone=false, dStreak=0;
+const keyErrors = {};
+const keyCorrect = {};
+
+function loadDrill(btn, key, title, desc, isCode){
+  document.querySelectorAll('.drill-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('d-title').textContent=title;
+  document.getElementById('d-desc').textContent=desc;
+  dText = DRILL_EXTRA[key] || DRILLS[key] || '';
+  resetDrill();
+}
+
+function renderDrillText(){
+  const val = document.getElementById('d-input').value;
+  let h='';
+  for(let i=0;i<dText.length;i++){
+    const ch=dText[i]===' '?'&nbsp;':dText[i];
+    if(i<val.length) h+=`<span class="dt-char ${val[i]===dText[i]?'ok':'err'}">${ch}</span>`;
+    else if(i===val.length) h+=`<span class="dt-char cur">${ch}</span>`;
+    else h+=`<span class="dt-char">${ch}</span>`;
+  }
+  document.getElementById('d-text').innerHTML=h;
+}
+
+function elMin(){ return dT0?(Date.now()-dT0)/60000:0; }
+
+const dinput = document.getElementById('d-input');
+dinput.addEventListener('input',()=>{
+  if(dDone){ dinput.value=dText; return; }
+  const val=dinput.value;
+  if(!dT0&&val.length>0){ dT0=Date.now(); dInt=setInterval(updateDStats,1000); }
+  dTotal=val.length; dCorrect=0; dErrs=0;
+  for(let i=0;i<val.length;i++){
+    if(val[i]===dText[i]){ dCorrect++; keyCorrect[dText[i]]=(keyCorrect[dText[i]]||0)+1; }
+    else{ dErrs++; if(dText[i]) keyErrors[dText[i]]=(keyErrors[dText[i]]||0)+1; }
+  }
+  // streak
+  if(val.length>0 && val[val.length-1]===dText[val.length-1]) dStreak++;
+  else dStreak=0;
+  document.getElementById('d-streak').textContent=dStreak;
+  // progress
+  const pct=Math.round((val.length/dText.length)*100);
+  document.getElementById('dp-fill').style.width=pct+'%';
+  document.getElementById('dp-pct').textContent=pct+'%';
+  renderDrillText(); updateDStats(); updateHeatmap();
+  if(val.length>=dText.length){ dDone=true; clearInterval(dInt); showDrillComplete(); }
+});
+
+function updateDStats(){
+  const e=elMin();
+  const w=e>0?Math.round(dCorrect/5/e):0;
+  const a=dTotal>0?Math.round((dCorrect/dTotal)*100):100;
+  document.getElementById('d-wpm').textContent=w;
+  document.getElementById('d-acc').textContent=dTotal>0?a+'%':'—';
+}
+
+function showDrillComplete(){
+  const e=elMin();
+  const w=e>0?Math.round(dCorrect/5/e):0;
+  const a=dTotal>0?Math.round((dCorrect/dTotal)*100):100;
+  document.getElementById('dc-wpm').textContent=w;
+  document.getElementById('dc-acc').textContent=a+'%';
+  document.getElementById('dc-errs').textContent=dErrs;
+  document.getElementById('dc-time').textContent=Math.round(e*60)+'s';
+  document.getElementById('d-complete').classList.add('show');
+}
+
+function resetDrill(){
+  clearInterval(dInt); dT0=null; dErrs=0; dCorrect=0; dTotal=0; dDone=false; dStreak=0;
+  dinput.value=''; dinput.classList.remove('err');
+  document.getElementById('d-complete').classList.remove('show');
+  document.getElementById('dp-fill').style.width='0%';
+  document.getElementById('dp-pct').textContent='0%';
+  document.getElementById('d-wpm').textContent='0';
+  document.getElementById('d-acc').textContent='—';
+  document.getElementById('d-streak').textContent='0';
+  if(!dText) dText=DRILLS['homerow'];
+  renderDrillText();
+}
+
+// KEYBOARD HEATMAP
+const ROWS = [
+  ['`','1','2','3','4','5','6','7','8','9','0','-','='],
+  ['q','w','e','r','t','y','u','i','o','p','[',']','\\'],
+  ['a','s','d','f','g','h','j','k','l',';',"'"],
+  ['z','x','c','v','b','n','m',',','.','/'],
+  [' '],
+];
+
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard');
+  ROWS.forEach((row,ri)=>{
+    const div=document.createElement('div');
+    div.className='key-row';
+    if(ri===1) div.style.paddingLeft='22px';
+    if(ri===2) div.style.paddingLeft='40px';
+    if(ri===3) div.style.paddingLeft='66px';
+    if(ri===4){ div.style.paddingLeft='176px'; }
+    row.forEach(k=>{
+      const el=document.createElement('div');
+      el.className='key';
+      el.id='key-'+k.replace(' ','SPACE');
+      el.textContent=k===' '?'':k;
+      if(k===' ') el.className='key space';
+      div.appendChild(el);
+    });
+    kb.appendChild(div);
+  });
+}
+
+function updateHeatmap(){
+  ROWS.flat().forEach(k=>{
+    const id='key-'+(k===' '?'SPACE':k);
+    const el=document.getElementById(id);
+    if(!el) return;
+    const errs=keyErrors[k]||0;
+    const corr=keyCorrect[k]||0;
+    const total=errs+corr;
+    el.classList.remove('hot-1','hot-2','hot-3','cur-key');
+    if(total===0) return;
+    const errRate=errs/total;
+    if(errRate>0.4) el.classList.add('hot-3');
+    else if(errRate>0.15) el.classList.add('hot-2');
+    else el.classList.add('hot-1');
+  });
+}
+
+buildKeyboard();
+dText=DRILLS['homerow'];
+renderDrillText();
+</script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Upload & Practice — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+.page-hero { padding:40px 48px 24px; max-width:1500px; margin:0 auto; display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.page-hero h1 { font-family:'DM Serif Display',serif; font-size:36px; color:var(--cream); }
+.page-hero p { font-family:'Crimson Pro',serif; font-size:15px; color:var(--cream-muted); margin-top:4px; }
+
+/* UPLOAD ZONE */
+.upload-bar {
+  background:var(--ink2);
+  border-top:1px solid var(--border-dim);
+  border-bottom:1px solid var(--border-dim);
+  padding:16px 48px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.upload-zone {
+  flex:1;
+  min-width:280px;
+  border:1px dashed var(--border-mid);
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  cursor:pointer;
+  transition:all 0.2s;
+  background:var(--ink3);
+}
+
+.upload-zone:hover { border-color:var(--amber); background:rgba(232,160,32,0.03); }
+.upload-zone.dragover { border-color:var(--amber); background:rgba(232,160,32,0.06); }
+
+.upload-icon { font-size:20px; color:var(--amber); flex-shrink:0; }
+
+.upload-text { font-size:12px; color:var(--cream-muted); line-height:1.5; }
+.upload-text strong { color:var(--cream-dim); font-weight:500; display:block; font-size:13px; }
+
+#file-input { display:none; }
+
+.uploaded-name {
+  display:none;
+  background:rgba(74,158,106,0.1);
+  border:1px solid rgba(74,158,106,0.3);
+  padding:8px 14px;
+  font-size:11px;
+  color:var(--green);
+  letter-spacing:0.04em;
+  align-items:center;
+  gap:8px;
+}
+
+.uploaded-name.show { display:flex; }
+
+.or-text { font-size:10px; color:var(--cream-muted); letter-spacing:0.1em; text-transform:uppercase; }
+
+.paste-btn {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:10px 18px;
+  border:1px solid var(--border-mid);
+  background:transparent;
+  color:var(--cream-muted);
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+
+.paste-btn:hover { border-color:var(--amber); color:var(--amber); }
+
+/* PASTE MODAL */
+.paste-modal-wrap {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:500;
+  align-items:center;
+  justify-content:center;
+}
+
+.paste-modal-wrap.show { display:flex; }
+
+.paste-modal {
+  background:var(--ink2);
+  border:1px solid var(--border);
+  width:640px;
+  max-width:94vw;
+  padding:0;
+  overflow:hidden;
+}
+
+.pm-head {
+  background:var(--ink3);
+  padding:14px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border-dim);
+}
+
+.pm-title { font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--amber); }
+
+.pm-close {
+  background:none;
+  border:none;
+  color:var(--cream-muted);
+  cursor:pointer;
+  font-size:16px;
+  font-family:'JetBrains Mono',monospace;
+  padding:2px 6px;
+  transition:color 0.15s;
+}
+
+.pm-close:hover { color:var(--cream); }
+
+.pm-body { padding:20px; }
+
+.pm-textarea {
+  width:100%;
+  height:200px;
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  color:var(--cream);
+  font-family:'Crimson Pro',serif;
+  font-size:15px;
+  padding:14px;
+  resize:vertical;
+  outline:none;
+  line-height:1.7;
+  caret-color:var(--amber);
+}
+
+.pm-textarea:focus { border-color:rgba(232,160,32,0.35); }
+
+.pm-foot {
+  padding:14px 20px;
+  border-top:1px solid var(--border-dim);
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+/* 3-PANEL */
+.workspace {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  background:var(--border-dim);
+  gap:1px;
+  border-top:1px solid var(--border-dim);
+  border-bottom:1px solid var(--border-dim);
+  min-height:600px;
+  max-width:1500px;
+  margin:0 auto;
+  padding:0 0;
+}
+
+.panel { background:var(--ink2); display:flex; flex-direction:column; overflow:hidden; position:relative; }
+
+.panel-hd {
+  background:var(--ink3);
+  border-bottom:1px solid var(--border-dim);
+  padding:11px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+
+.panel-lbl {
+  font-size:9px;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  color:var(--amber);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.panel-lbl::before { content:''; width:5px; height:5px; background:var(--amber); border-radius:50%; opacity:0.5; }
+
+.pbtn {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.08em; text-transform:uppercase;
+  padding:3px 10px; border:1px solid var(--border-dim); background:transparent; color:var(--cream-muted); cursor:pointer; transition:all 0.15s;
+}
+.pbtn:hover { border-color:var(--amber); color:var(--amber); }
+.pbtn.on { background:var(--amber); color:var(--ink); border-color:var(--amber); font-weight:600; }
+
+.panel-body { flex:1; overflow-y:auto; padding:18px; scrollbar-width:thin; scrollbar-color:var(--amber-dim) transparent; }
+
+/* READER PANEL */
+.empty-reader {
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  text-align:center;
+  padding:32px;
+}
+
+.er-icon { font-size:32px; color:var(--amber); opacity:0.4; }
+.er-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--cream-muted); }
+.er-sub { font-family:'Crimson Pro',serif; font-size:14px; color:var(--cream-muted); line-height:1.6; max-width:260px; }
+
+.pdf-canvas-wrap { overflow-y:auto; }
+canvas#pdf-canvas { max-width:100%; display:block; border:1px solid var(--border-dim); margin-bottom:8px; }
+
+.reader-text-display {
+  font-family:'Crimson Pro',serif;
+  font-size:15px;
+  line-height:2.1;
+  color:var(--cream-muted);
+  user-select:none;
+}
+
+.rw { display:inline; }
+.rw.cur { background:rgba(232,160,32,0.16); color:var(--cream); border-radius:2px; padding:0 2px; }
+.rw.ok { color:var(--green); }
+.rw.bad { color:var(--red); text-decoration:line-through; }
+
+.page-nav {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 0;
+  border-top:1px solid var(--border-dim);
+  margin-top:10px;
+}
+
+.page-nav-btn {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+  padding:4px 12px; border:1px solid var(--border-dim); background:transparent; color:var(--cream-muted); cursor:pointer; transition:all 0.15s;
+}
+.page-nav-btn:hover { border-color:var(--amber); color:var(--amber); }
+.page-nav-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+.page-info { font-size:10px; color:var(--cream-muted); letter-spacing:0.06em; }
+
+.reader-footer { margin-top:12px; padding-top:12px; border-top:1px solid var(--border-dim); display:flex; gap:16px; flex-wrap:wrap; }
+.rmeta { font-size:10px; color:var(--cream-muted); letter-spacing:0.05em; }
+.rmeta strong { color:var(--amber); font-weight:400; }
+
+/* TYPING PANEL */
+.ghost {
+  background:var(--ink3); border:1px solid var(--border-dim); padding:14px;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.9; min-height:84px; margin-bottom:12px; overflow:hidden;
+}
+
+.gc { color:var(--cream-muted); }
+.gc.ok { color:var(--green); }
+.gc.err { color:var(--red); background:rgba(192,69,58,0.1); }
+.gc.curs { border-left:2px solid var(--amber); animation:blink 1s step-start infinite; }
+
+.typein {
+  width:100%; background:var(--ink3); border:1px solid var(--border-dim); color:var(--cream);
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; padding:13px; resize:none; outline:none;
+  min-height:110px; line-height:1.7; transition:border-color 0.15s; caret-color:var(--amber);
+}
+.typein:focus { border-color:rgba(232,160,32,0.35); }
+.typein.err-t { border-color:rgba(192,69,58,0.4); }
+
+.type-foot { display:flex; align-items:center; justify-content:space-between; margin-top:10px; font-size:10px; color:var(--cream-muted); }
+.stt { display:flex; align-items:center; gap:7px; }
+.sdot { width:6px; height:6px; border-radius:50%; background:var(--cream-muted); }
+.sdot.active { background:var(--green); box-shadow:0 0 5px rgba(74,158,106,0.5); }
+
+/* FINISH */
+.finish {
+  display:none; position:absolute; inset:0; background:rgba(10,10,8,0.96); z-index:20;
+  flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center;
+}
+.finish.show { display:flex; }
+.f-wpm { font-family:'DM Serif Display',serif; font-size:72px; color:var(--amber); line-height:1; }
+.f-lbl { font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--cream-muted); margin:6px 0 20px; }
+.f-row { display:flex; gap:24px; margin-bottom:22px; }
+.f-s { text-align:center; }
+.f-sv { font-family:'DM Serif Display',serif; font-size:28px; color:var(--cream); }
+.f-sl { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:var(--cream-muted); margin-top:2px; }
+
+/* ANALYTICS PANEL */
+.sg { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+.sb { background:var(--ink3); border:1px solid var(--border-dim); padding:12px 14px; }
+.sbl { font-size:9px; letter-spacing:0.13em; text-transform:uppercase; color:var(--cream-muted); margin-bottom:3px; }
+.sbv { font-family:'DM Serif Display',serif; font-size:24px; color:var(--amber); line-height:1; }
+.sbu { font-size:9px; color:var(--cream-muted); }
+
+.chart-box { background:var(--ink3); border:1px solid var(--border-dim); padding:12px; margin-bottom:10px; }
+.chart-lbl { font-size:9px; letter-spacing:0.13em; text-transform:uppercase; color:var(--amber); margin-bottom:9px; }
+.bars { display:flex; align-items:flex-end; gap:3px; height:52px; }
+.bar-item { flex:1; background:var(--amber-dim); border-radius:1px 1px 0 0; min-height:2px; transition:height 0.3s; }
+.bar-item.cur { background:var(--amber); }
+
+.acc-row { display:flex; justify-content:space-between; font-size:10px; color:var(--cream-muted); margin-bottom:5px; }
+.track { height:3px; background:var(--ink5); margin-bottom:10px; }
+.track-fill { height:100%; background:var(--green); transition:width 0.4s; }
+
+.missed { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+.mchip { font-size:10px; padding:2px 8px; background:rgba(192,69,58,0.12); border:1px solid rgba(192,69,58,0.25); color:#e07070; font-family:'JetBrains Mono',monospace; }
+
+/* SPEED TIMELINE */
+.speed-timeline { margin-bottom:12px; }
+.st-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.st-time { font-size:9px; color:var(--cream-muted); width:28px; flex-shrink:0; text-align:right; }
+.st-track { flex:1; height:8px; background:var(--ink5); border-radius:1px; overflow:hidden; }
+.st-fill { height:100%; border-radius:1px; transition:width 0.3s; }
+.st-val { font-size:9px; color:var(--amber); width:36px; text-align:right; flex-shrink:0; font-family:'JetBrains Mono',monospace; }
+
+/* WORD ERROR HEATMAP */
+.word-err-list { }
+.we-item { display:flex; align-items:center; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(237,232,216,0.04); font-size:11px; }
+.we-word { color:var(--cream-dim); font-family:'JetBrains Mono',monospace; }
+.we-count { color:var(--red); font-size:10px; }
+
+.section-mini { font-size:9px; letter-spacing:0.14em; text-transform:uppercase; color:var(--amber); margin:12px 0 7px; display:flex; align-items:center; gap:8px; }
+.section-mini::after { content:''; flex:1; height:1px; background:var(--border-dim); }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div>
+    <div class="eyebrow">Upload & Practice</div>
+    <h1>Practice with Your Own Text</h1>
+    <p>Upload a PDF or paste any text — get the full 3-panel experience with deep analytics on your content.</p>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="pbtn on" id="strict-btn" onclick="toggleStrict()" style="padding:8px 16px">Strict: off</button>
+    <button class="btn-outline" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+<!-- UPLOAD BAR -->
+<div class="upload-bar">
+  <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event)">
+    <div class="upload-icon">⬆</div>
+    <div class="upload-text">
+      <strong>Upload PDF or Text File</strong>
+      Click to browse or drag & drop — .pdf, .txt, .md
+    </div>
+  </div>
+  <input type="file" id="file-input" accept=".pdf,.txt,.md,.text" onchange="handleFile(this.files[0])">
+
+  <div class="uploaded-name" id="uploaded-name">
+    <span style="color:var(--green)">✓</span>
+    <span id="fname-display"></span>
+    <span style="cursor:pointer;color:var(--cream-muted);margin-left:4px" onclick="clearFile()">✕</span>
+  </div>
+
+  <div class="or-text">or</div>
+  <button class="paste-btn" onclick="openPaste()">Paste Text</button>
+</div>
+
+<!-- PASTE MODAL -->
+<div class="paste-modal-wrap" id="paste-modal">
+  <div class="paste-modal">
+    <div class="pm-head">
+      <span class="pm-title">▸ Paste Your Text</span>
+      <button class="pm-close" onclick="closePaste()">✕</button>
+    </div>
+    <div class="pm-body">
+      <p style="font-family:'Crimson Pro',serif;font-size:14px;color:var(--cream-muted);margin-bottom:12px">Paste any text — articles, notes, code, anything you want to practice with.</p>
+      <textarea class="pm-textarea" id="paste-area" placeholder="Paste your text here..."></textarea>
+      <div style="margin-top:8px;font-size:10px;color:var(--cream-muted)" id="paste-count">0 words</div>
+    </div>
+    <div class="pm-foot">
+      <button class="pbtn" onclick="closePaste()">Cancel</button>
+      <button class="pbtn on" onclick="usePastedText()">Use This Text →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3-PANEL WORKSPACE -->
+<div class="workspace">
+
+  <!-- PANEL 1: READER -->
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="panel-lbl">Document Reader</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <button class="pbtn" id="pg-prev" onclick="changePage(-1)" disabled>◂ Prev</button>
+        <span style="font-size:9px;color:var(--cream-muted)" id="pg-info"></span>
+        <button class="pbtn" id="pg-next" onclick="changePage(1)" disabled>Next ▸</button>
+      </div>
+    </div>
+    <div class="panel-body" id="reader-body">
+      <div class="empty-reader" id="empty-reader">
+        <div class="er-icon">📄</div>
+        <div class="er-title">No document loaded</div>
+        <p class="er-sub">Upload a PDF or paste text above to start. Your text will appear here word-by-word as you type.</p>
+        <button class="pbtn on" onclick="document.getElementById('file-input').click()" style="padding:8px 18px;margin-top:4px">Upload File →</button>
+      </div>
+      <div class="pdf-canvas-wrap" id="pdf-wrap" style="display:none">
+        <canvas id="pdf-canvas"></canvas>
+      </div>
+      <div id="text-reader" style="display:none">
+        <div class="reader-text-display" id="reader-display"></div>
+        <div class="reader-footer">
+          <div class="rmeta">Words: <strong id="m-words">—</strong></div>
+          <div class="rmeta">Chars: <strong id="m-chars">—</strong></div>
+          <div class="rmeta">Est. time: <strong id="m-rt">—</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: TYPING -->
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="panel-lbl">Typing Arena</div>
+      <div style="display:flex;gap:5px">
+        <span style="font-size:9px;color:var(--cream-muted)" id="prog-pct">0%</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="ghost" id="ghost"></div>
+      <textarea class="typein" id="tinput" placeholder="// start typing to begin..." spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" disabled></textarea>
+      <div class="type-foot">
+        <div class="stt">
+          <div class="sdot" id="sdot"></div>
+          <span id="stxt" style="font-size:10px;letter-spacing:0.05em">upload a file to begin</span>
+        </div>
+        <span id="ccount" style="font-size:10px;color:var(--cream-muted)">0 / — chars</span>
+      </div>
+      <!-- progress bar -->
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:9px;color:var(--cream-muted)">
+          <span>Progress</span><span id="prog-chars">0 / 0 chars</span>
+        </div>
+        <div class="track"><div class="track-fill" id="prog-fill" style="width:0%;background:var(--amber)"></div></div>
+      </div>
+    </div>
+    <div class="finish" id="finish">
+      <div class="f-wpm" id="f-wpm">0</div>
+      <div class="f-lbl">words per minute</div>
+      <div class="f-row">
+        <div class="f-s"><div class="f-sv" id="f-acc">—%</div><div class="f-sl">Accuracy</div></div>
+        <div class="f-s"><div class="f-sv" id="f-err">0</div><div class="f-sl">Errors</div></div>
+        <div class="f-s"><div class="f-sv" id="f-time">0s</div><div class="f-sl">Time</div></div>
+        <div class="f-s"><div class="f-sv" id="f-cpm">0</div><div class="f-sl">CPM</div></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-primary" onclick="resetAll()" style="font-size:10px;padding:10px 20px">Try Again →</button>
+        <a href="stats.html" class="btn-ghost" style="font-size:10px;padding:10px 20px">View Stats →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: ANALYTICS -->
+  <div class="panel">
+    <div class="panel-hd">
+      <div class="panel-lbl">Deep Analytics</div>
+      <span id="cbadge" style="font-size:9px;color:var(--amber);letter-spacing:0.07em">consistency —</span>
+    </div>
+    <div class="panel-body">
+      <!-- Live stats -->
+      <div class="sg">
+        <div class="sb"><div class="sbl">WPM</div><div class="sbv" id="s-wpm">0</div><div class="sbu">words/min</div></div>
+        <div class="sb"><div class="sbl">Accuracy</div><div class="sbv" id="s-acc" style="font-size:20px">—</div><div class="sbu">percent</div></div>
+        <div class="sb"><div class="sbl">CPM</div><div class="sbv" id="s-cpm">0</div><div class="sbu">chars/min</div></div>
+        <div class="sb"><div class="sbl">Errors</div><div class="sbv" id="s-err" style="color:var(--red)">0</div><div class="sbu">mistakes</div></div>
+      </div>
+
+      <!-- WPM chart -->
+      <div class="chart-box">
+        <div class="chart-lbl">▸ live WPM per second</div>
+        <div class="bars" id="wpm-bars"></div>
+      </div>
+
+      <!-- Accuracy bar -->
+      <div class="acc-row"><span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted)">Accuracy</span><span id="acc-pct" style="font-size:10px;color:var(--amber)">—%</span></div>
+      <div class="track"><div class="track-fill" id="acc-fill" style="width:0%"></div></div>
+      <div class="acc-row"><span style="font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream-muted)">Consistency</span><span id="cons-pct" style="font-size:10px;color:var(--green)">—%</span></div>
+      <div class="track"><div class="track-fill" id="cons-fill" style="width:0%;background:var(--green)"></div></div>
+
+      <!-- Speed timeline -->
+      <div class="section-mini">Speed timeline</div>
+      <div class="speed-timeline" id="speed-timeline">
+        <div style="font-size:10px;color:var(--cream-muted)">starts after 5 seconds of typing</div>
+      </div>
+
+      <!-- Word errors -->
+      <div class="section-mini">Most-missed words</div>
+      <div class="word-err-list" id="word-errs">
+        <div style="font-size:10px;color:var(--cream-muted)">none yet</div>
+      </div>
+
+      <!-- Missed keys -->
+      <div class="section-mini">Missed keys</div>
+      <div class="missed" id="missed"><span style="font-size:10px;color:var(--cream-muted)">none yet</span></div>
+    </div>
+  </div>
+</div>
+
+<div style="height:40px"></div>
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script src="api.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('upload');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+// PDF.js setup
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let passage='', pwords=[], pdfDoc=null, pdfPage=1;
+let tChars=0, cChars=0, errs=0;
+let t0=null, tInt=null;
+let wpmH=[], missedK={}, wordErrs={}, strict=false, done=false, wIdx=0;
+let secWPM=[];
+
+const inp = document.getElementById('tinput');
+const sdot = document.getElementById('sdot');
+const stxt = document.getElementById('stxt');
+
+// ── UPLOAD HANDLING ──
+function dragOver(e){ e.preventDefault(); document.getElementById('drop-zone').classList.add('dragover'); }
+function dragLeave(){ document.getElementById('drop-zone').classList.remove('dragover'); }
+function handleDrop(e){ e.preventDefault(); dragLeave(); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }
+
+function handleFile(file){
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  document.getElementById('fname-display').textContent = file.name;
+  document.getElementById('uploaded-name').classList.add('show');
+
+  if(ext==='pdf'){
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const arr = new Uint8Array(e.target.result);
+        pdfDoc = await pdfjsLib.getDocument({data:arr}).promise;
+        await renderPdfPage(1);
+        // Extract all text
+        let fullText='';
+        for(let p=1;p<=pdfDoc.numPages;p++){
+          const pg = await pdfDoc.getPage(p);
+          const tc = await pg.getTextContent();
+          fullText += tc.items.map(i=>i.str).join(' ')+' ';
+        }
+        setPassage(fullText.trim());
+      } catch(err) {
+        stxt.textContent='PDF parse error — try pasting text instead';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = e => { setPassage(e.target.result.trim()); showTextReader(); };
+    reader.readAsText(file);
+  }
+}
+
+async function renderPdfPage(num){
+  if(!pdfDoc) return;
+  pdfPage = num;
+  const pg = await pdfDoc.getPage(num);
+  const vp = pg.getViewport({scale:1.4});
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width=vp.width; canvas.height=vp.height;
+  await pg.render({canvasContext:ctx,viewport:vp}).promise;
+  document.getElementById('empty-reader').style.display='none';
+  document.getElementById('pdf-wrap').style.display='block';
+  document.getElementById('text-reader').style.display='none';
+  document.getElementById('pg-info').textContent=num+'/'+pdfDoc.numPages;
+  document.getElementById('pg-prev').disabled=num<=1;
+  document.getElementById('pg-next').disabled=num>=pdfDoc.numPages;
+}
+
+function changePage(d){ renderPdfPage(pdfPage+d); }
+
+function showTextReader(){
+  document.getElementById('empty-reader').style.display='none';
+  document.getElementById('pdf-wrap').style.display='none';
+  document.getElementById('text-reader').style.display='block';
+}
+
+function setPassage(text){
+  // Clean and limit to reasonable length
+  passage = text.replace(/\s+/g,' ').trim().slice(0,2000);
+  pwords = passage.split(' ').filter(w=>w.length>0);
+  renderReaderWords();
+  showTextReader();
+  document.getElementById('m-words').textContent=pwords.length;
+  document.getElementById('m-chars').textContent=passage.length;
+  document.getElementById('m-rt').textContent=Math.max(1,Math.round(pwords.length/200))+'min';
+  renderGhost();
+  inp.disabled=false;
+  stxt.textContent='ready — start typing';
+  resetState();
+  document.getElementById('pg-info').textContent='text mode';
+}
+
+function renderReaderWords(){
+  document.getElementById('reader-display').innerHTML=
+    pwords.map((w,i)=>`<span class="rw" id="rw-${i}">${w}</span> `).join('');
+}
+
+function renderGhost(){
+  const val=inp.value;
+  let h='';
+  for(let i=0;i<Math.min(passage.length,200);i++){
+    const ch=passage[i]===' '?'&nbsp;':passage[i];
+    if(i<val.length) h+=`<span class="gc ${val[i]===passage[i]?'ok':'err'}">${ch}</span>`;
+    else if(i===val.length) h+=`<span class="gc curs">${ch}</span>`;
+    else h+=`<span class="gc">${ch}</span>`;
+  }
+  document.getElementById('ghost').innerHTML=h;
+}
+
+// PASTE MODAL
+function openPaste(){ document.getElementById('paste-modal').classList.add('show'); document.getElementById('paste-area').focus(); }
+function closePaste(){ document.getElementById('paste-modal').classList.remove('show'); }
+document.getElementById('paste-area').addEventListener('input',function(){
+  const wc=this.value.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('paste-count').textContent=wc+' words';
+});
+function usePastedText(){
+  const t=document.getElementById('paste-area').value.trim();
+  if(!t) return;
+  document.getElementById('fname-display').textContent='Pasted text ('+t.split(/\s+/).length+' words)';
+  document.getElementById('uploaded-name').classList.add('show');
+  setPassage(t);
+  closePaste();
+}
+
+function clearFile(){
+  passage=''; pwords=[]; pdfDoc=null;
+  document.getElementById('uploaded-name').classList.remove('show');
+  document.getElementById('empty-reader').style.display='flex';
+  document.getElementById('pdf-wrap').style.display='none';
+  document.getElementById('text-reader').style.display='none';
+  document.getElementById('pg-info').textContent='';
+  document.getElementById('pg-prev').disabled=true;
+  document.getElementById('pg-next').disabled=true;
+  inp.disabled=true; inp.value='';
+  stxt.textContent='upload a file to begin';
+  resetState();
+}
+
+function toggleStrict(){
+  strict=!strict;
+  const b=document.getElementById('strict-btn');
+  b.textContent='Strict: '+(strict?'on':'off');
+  b.classList.toggle('on',strict);
+}
+
+// TYPING
+function elMin(){ return t0?(Date.now()-t0)/60000:0; }
+
+inp.addEventListener('input',()=>{
+  if(done||!passage){ inp.value=''; return; }
+  const val=inp.value;
+  if(!t0&&val.length>0){
+    t0=Date.now();
+    sdot.classList.add('active');
+    stxt.textContent='typing...';
+    tInt=setInterval(()=>{ updateBar(); updateStats(); updateTimeline(); }, 1000);
+  }
+  tChars=val.length; cChars=0; errs=0;
+  for(let i=0;i<val.length;i++){
+    if(val[i]===passage[i]) cChars++;
+    else {
+      errs++;
+      if(passage[i]) missedK[passage[i]]=(missedK[passage[i]]||0)+1;
+    }
+  }
+  // Word error tracking
+  const valWords=val.split(' ');
+  valWords.forEach((w,i)=>{
+    if(i<pwords.length && w.length>=pwords[i].length && w!==pwords[i]){
+      wordErrs[pwords[i]]=(wordErrs[pwords[i]]||0)+1;
+    }
+  });
+
+  if(strict && val.length>0 && val[val.length-1]!==passage[val.length-1]){
+    inp.classList.add('err-t');
+    sdot.classList.remove('active'); sdot.classList.add('err');
+  } else {
+    inp.classList.remove('err-t');
+    sdot.classList.remove('err');
+    if(t0) sdot.classList.add('active');
+  }
+
+  const wi=val.split(' ').length-1;
+  if(wi!==wIdx){
+    const ps=val.split(' '); ps.pop();
+    const prev=document.getElementById('rw-'+wIdx);
+    if(prev){ prev.classList.remove('cur'); prev.classList.add(ps[ps.length-1]===pwords[wIdx]?'ok':'bad'); }
+    wIdx=wi;
+    const cur=document.getElementById('rw-'+wIdx);
+    if(cur){ cur.classList.add('cur'); cur.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  } else {
+    document.querySelectorAll('.rw').forEach(r=>r.classList.remove('cur'));
+    const el=document.getElementById('rw-'+wIdx); if(el) el.classList.add('cur');
+  }
+
+  // Progress
+  const pct=Math.round((val.length/passage.length)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-chars').textContent=val.length+' / '+passage.length+' chars';
+  document.getElementById('ccount').textContent=val.length+' / '+passage.length+' chars';
+
+  renderGhost(); updateStats();
+  if(val.length>=passage.length) finish();
+});
+
+function updateStats(){
+  const e=elMin();
+  const w=e>0?Math.round(cChars/5/e):0;
+  const c=e>0?Math.round(cChars/e):0;
+  const a=tChars>0?Math.round((cChars/tChars)*100):100;
+  const cs=calcCons();
+  document.getElementById('s-wpm').textContent=w;
+  document.getElementById('s-cpm').textContent=c;
+  document.getElementById('s-acc').textContent=tChars>0?a+'%':'—';
+  document.getElementById('s-err').textContent=errs;
+  document.getElementById('acc-fill').style.width=(tChars>0?a:0)+'%';
+  document.getElementById('acc-fill').style.background=a>=90?'var(--green)':a>=70?'var(--amber-dim)':'var(--red)';
+  document.getElementById('acc-pct').textContent=(tChars>0?a:'—')+'%';
+  document.getElementById('cons-fill').style.width=cs+'%';
+  document.getElementById('cons-pct').textContent=cs+'%';
+  document.getElementById('cbadge').textContent='consistency '+cs+'%';
+  updateMissed(); updateWordErrs();
+}
+
+function updateBar(){
+  const e=elMin();
+  const w=e>0?Math.round(cChars/5/e):0;
+  wpmH.push(w); if(wpmH.length>20) wpmH.shift();
+  const mx=Math.max(...wpmH,1);
+  document.getElementById('wpm-bars').innerHTML=wpmH.map((v,i)=>{
+    const h=Math.max(2,Math.round((v/mx)*50));
+    return `<div class="bar-item ${i===wpmH.length-1?'cur':''}" style="height:${h}px"></div>`;
+  }).join('');
+}
+
+function updateTimeline(){
+  const e=Math.round(elMin()*60);
+  const w=e>0?Math.round(cChars/5/elMin()):0;
+  if(e>0) secWPM.push({t:e,w});
+  if(secWPM.length<2) return;
+  const mx=Math.max(...secWPM.map(s=>s.w),1);
+  const recent=secWPM.slice(-8);
+  document.getElementById('speed-timeline').innerHTML=recent.map(s=>`
+    <div class="st-row">
+      <div class="st-time">${s.t}s</div>
+      <div class="st-track"><div class="st-fill" style="width:${Math.round((s.w/mx)*100)}%;background:${s.w>mx*0.8?'var(--amber)':s.w>mx*0.5?'var(--amber-dim)':'var(--ink5)'}"></div></div>
+      <div class="st-val">${s.w}</div>
+    </div>`).join('');
+}
+
+function updateMissed(){
+  const entries=Object.entries(missedK).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const el=document.getElementById('missed');
+  el.innerHTML=entries.length?entries.map(([k,v])=>`<span class="mchip">${k===' '?'␣':k} ×${v}</span>`).join(''):'<span style="font-size:10px;color:var(--cream-muted)">none yet</span>';
+}
+
+function updateWordErrs(){
+  const entries=Object.entries(wordErrs).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const el=document.getElementById('word-errs');
+  el.innerHTML=entries.length?entries.map(([w,v])=>`<div class="we-item"><span class="we-word">${w}</span><span class="we-count">×${v}</span></div>`).join(''):'<div style="font-size:10px;color:var(--cream-muted)">none yet</div>';
+}
+
+function calcCons(){
+  if(wpmH.length<2) return 100;
+  const avg=wpmH.reduce((a,b)=>a+b,0)/wpmH.length;
+  if(!avg) return 100;
+  const sd=Math.sqrt(wpmH.reduce((s,v)=>s+Math.pow(v-avg,2),0)/wpmH.length);
+  return Math.min(100,Math.max(0,Math.round(100-(sd/avg)*100)));
+}
+
+function finish(){
+  done=true; clearInterval(tInt);
+  inp.disabled=true; sdot.classList.remove('active','err');
+  stxt.textContent='finished!';
+  const e=elMin();
+  const w=e>0?Math.round(cChars/5/e):0;
+  const a=tChars>0?Math.round((cChars/tChars)*100):100;
+  document.getElementById('f-wpm').textContent=w;
+  document.getElementById('f-acc').textContent=a+'%';
+  document.getElementById('f-err').textContent=errs;
+  document.getElementById('f-time').textContent=Math.round(e*60)+'s';
+  document.getElementById('f-cpm').textContent=Math.round(cChars/e)||0;
+  document.getElementById('finish').classList.add('show');
+  saveSession({date:Date.now(),wpm:w,acc:a,errors:errs,time:Math.round(e*60),cat:'upload',mode:'upload'})
+    .catch(err => console.error('Failed to save upload session', err));
+}
+
+function resetState(){
+  clearInterval(tInt);
+  t0=null; tChars=0; cChars=0; errs=0; wpmH=[]; missedK={}; wordErrs={}; done=false; wIdx=0; secWPM=[];
+  inp.value=''; inp.classList.remove('err-t');
+  sdot.classList.remove('active','err');
+  document.getElementById('ccount').textContent='0 / — chars';
+  document.getElementById('prog-fill').style.width='0%';
+  document.getElementById('prog-pct').textContent='0%';
+  document.getElementById('prog-chars').textContent='0 / 0 chars';
+  ['s-wpm','s-cpm'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('s-acc').textContent='—';
+  document.getElementById('s-err').textContent='0';
+  document.getElementById('acc-fill').style.width='0%';
+  document.getElementById('acc-pct').textContent='—%';
+  document.getElementById('cons-fill').style.width='0%';
+  document.getElementById('cons-pct').textContent='—%';
+  document.getElementById('wpm-bars').innerHTML='';
+  document.getElementById('missed').innerHTML='<span style="font-size:10px;color:var(--cream-muted)">none yet</span>';
+  document.getElementById('word-errs').innerHTML='<div style="font-size:10px;color:var(--cream-muted)">none yet</div>';
+  document.getElementById('speed-timeline').innerHTML='<div style="font-size:10px;color:var(--cream-muted)">starts after 5 seconds of typing</div>';
+  document.getElementById('finish').classList.remove('show');
+}
+
+function resetAll(){
+  resetState();
+  if(passage){ renderReaderWords(); renderGhost(); inp.disabled=false; stxt.textContent='ready — start typing'; }
+}
+</script>
+</body>
+</html>

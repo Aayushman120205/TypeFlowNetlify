@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Learn — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero { padding: 52px 48px 48px; max-width: 1300px; margin: 0 auto; }
+.page-hero h1 { font-family: 'DM Serif Display', serif; font-size: 56px; color: var(--cream); margin-bottom: 12px; line-height: 1.05; }
+.page-hero p { font-family: 'Crimson Pro', serif; font-size: 19px; color: var(--cream-dim); max-width: 600px; line-height: 1.7; }
+
+/* TOPIC NAV */
+.topic-nav {
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--ink2);
+  padding: 0 48px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.tnav-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  cursor: pointer;
+  color: var(--cream-muted);
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.tnav-item:hover { color: var(--cream-dim); }
+.tnav-item.on { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* SECTIONS */
+.learn-section { display: none; padding: 56px 48px 0; max-width: 1300px; margin: 0 auto; }
+.learn-section.show { display: block; }
+
+/* FINGER PLACEMENT */
+.finger-viz {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 32px;
+  margin-bottom: 32px;
+}
+
+.finger-keyboard { display: flex; flex-direction: column; gap: 6px; margin: 24px 0; }
+.fk-row { display: flex; gap: 5px; align-items: center; }
+.fk-key {
+  width: 48px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  border-radius: 3px;
+  border: 1px solid;
+  cursor: default;
+  font-weight: 500;
+  transition: transform 0.15s;
+}
+.fk-key:hover { transform: translateY(-2px); }
+
+/* finger color coding */
+.f-pinky-l  { background: rgba(192,69,58,0.12);  border-color: rgba(192,69,58,0.3);  color: #e07070; }
+.f-ring-l   { background: rgba(232,160,32,0.10);  border-color: rgba(232,160,32,0.25); color: var(--amber); }
+.f-mid-l    { background: rgba(74,158,106,0.12);  border-color: rgba(74,158,106,0.3);  color: var(--green); }
+.f-index-l  { background: rgba(74,128,184,0.12);  border-color: rgba(74,128,184,0.3);  color: var(--blue); }
+.f-thumb    { background: rgba(127,119,221,0.12); border-color: rgba(127,119,221,0.3); color: #afa9ec; }
+.f-index-r  { background: rgba(74,128,184,0.12);  border-color: rgba(74,128,184,0.3);  color: var(--blue); }
+.f-mid-r    { background: rgba(74,158,106,0.12);  border-color: rgba(74,158,106,0.3);  color: var(--green); }
+.f-ring-r   { background: rgba(232,160,32,0.10);  border-color: rgba(232,160,32,0.25); color: var(--amber); }
+.f-pinky-r  { background: rgba(192,69,58,0.12);  border-color: rgba(192,69,58,0.3);  color: #e07070; }
+.fk-key.home-dot::after { content: '·'; position: absolute; bottom: 4px; font-size: 14px; }
+
+.finger-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.fl-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--cream-muted);
+}
+
+.fl-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* 30 DAY PLAN */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.plan-day {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.plan-day:hover { border-color: var(--border-mid); background: var(--ink3); }
+.plan-day.done { border-color: rgba(74,158,106,0.3); background: rgba(74,158,106,0.05); }
+.plan-day.today { border-color: var(--amber); }
+
+.pd-num { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--cream-muted); line-height: 1; margin-bottom: 4px; }
+.pd-num.done { color: var(--green); }
+.pd-num.today { color: var(--amber); }
+.pd-title { font-size: 10px; color: var(--cream-muted); line-height: 1.4; }
+.pd-check { position: absolute; top: 8px; right: 10px; font-size: 10px; color: var(--green); }
+
+/* TIPS GRID */
+.tips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.tip-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+}
+
+.tip-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: var(--amber);
+  opacity: 0.4;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 40px;
+}
+
+.tip-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--cream); margin-bottom: 8px; }
+.tip-text { font-family: 'Crimson Pro', serif; font-size: 15px; color: var(--cream-muted); line-height: 1.65; }
+
+/* SCIENCE SECTION */
+.science-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.sci-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 28px;
+}
+
+.sci-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--cream); margin-bottom: 12px; }
+.sci-text { font-family: 'Crimson Pro', serif; font-size: 16px; color: var(--cream-muted); line-height: 1.7; margin-bottom: 16px; }
+
+.sci-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-dim);
+}
+
+.sci-stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--amber); }
+.sci-stat-lbl { font-size: 11px; color: var(--cream-muted); }
+
+/* WPM LEVELS */
+.wpm-levels { margin-bottom: 32px; }
+
+.wpm-level {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  border-top: none;
+  transition: background 0.15s;
+}
+
+.wpm-level:first-child { border-top: 1px solid var(--border-dim); }
+.wpm-level:hover { background: var(--ink3); }
+
+.wl-speed { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--amber); }
+.wl-label { font-size: 12px; color: var(--cream-dim); margin-bottom: 3px; }
+.wl-desc { font-family: 'Crimson Pro', serif; font-size: 14px; color: var(--cream-muted); }
+.wl-bar-wrap { width: 120px; }
+.wl-track { height: 3px; background: var(--ink5); }
+.wl-fill { height: 100%; }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div class="eyebrow">Education & technique</div>
+  <h1>Learn to type <em>faster.</em></h1>
+  <p>Science-backed guides on finger placement, speed mechanics, and a 30-day structured improvement plan built for results.</p>
+</div>
+
+<!-- TOPIC NAV -->
+<nav class="topic-nav">
+  <button class="tnav-item on" onclick="showSection(this,'finger')">Finger Placement</button>
+  <button class="tnav-item" onclick="showSection(this,'tips')">Speed Tips</button>
+  <button class="tnav-item" onclick="showSection(this,'plan')">30-Day Plan</button>
+  <button class="tnav-item" onclick="showSection(this,'science')">The Science</button>
+  <button class="tnav-item" onclick="showSection(this,'levels')">WPM Levels</button>
+</nav>
+
+<!-- FINGER PLACEMENT -->
+<div class="learn-section show" id="sec-finger">
+  <h2 class="display-md" style="margin-bottom:8px">Where your fingers live</h2>
+  <p class="body-serif" style="max-width:560px;margin-bottom:32px">Every touch typist starts with the home row. Your fingers rest here between keystrokes. Learning this positioning is the single most impactful change you can make.</p>
+
+  <div class="finger-viz">
+    <div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--amber);margin-bottom:4px">▸ Colour-coded finger map</div>
+    <p style="font-family:'Crimson Pro',serif;font-size:14px;color:var(--cream-muted);margin-bottom:20px">Hover over any key to see which finger should press it.</p>
+
+    <div class="finger-keyboard">
+      <!-- Row 1: Numbers -->
+      <div class="fk-row">
+        <div class="fk-key f-pinky-l">`</div><div class="fk-key f-pinky-l">1</div><div class="fk-key f-ring-l">2</div><div class="fk-key f-mid-l">3</div>
+        <div class="fk-key f-index-l">4</div><div class="fk-key f-index-l">5</div><div class="fk-key f-index-r">6</div><div class="fk-key f-index-r">7</div>
+        <div class="fk-key f-mid-r">8</div><div class="fk-key f-ring-r">9</div><div class="fk-key f-ring-r">0</div><div class="fk-key f-pinky-r">-</div><div class="fk-key f-pinky-r">=</div>
+      </div>
+      <!-- Row 2: QWERTY -->
+      <div class="fk-row" style="padding-left:22px">
+        <div class="fk-key f-pinky-l">Q</div><div class="fk-key f-ring-l">W</div><div class="fk-key f-mid-l">E</div><div class="fk-key f-index-l">R</div>
+        <div class="fk-key f-index-l">T</div><div class="fk-key f-index-r">Y</div><div class="fk-key f-index-r">U</div><div class="fk-key f-mid-r">I</div>
+        <div class="fk-key f-ring-r">O</div><div class="fk-key f-pinky-r">P</div>
+      </div>
+      <!-- Row 3: ASDF (HOME ROW) -->
+      <div class="fk-row" style="padding-left:36px">
+        <div class="fk-key f-pinky-l" style="position:relative">A<span style="position:absolute;bottom:2px;font-size:10px;color:inherit;opacity:0.6">·</span></div>
+        <div class="fk-key f-ring-l">S</div>
+        <div class="fk-key f-mid-l">D</div>
+        <div class="fk-key f-index-l" style="position:relative">F<span style="position:absolute;bottom:2px;font-size:10px;color:inherit;opacity:0.6">·</span></div>
+        <div class="fk-key f-index-l">G</div>
+        <div class="fk-key f-index-r">H</div>
+        <div class="fk-key f-index-r" style="position:relative">J<span style="position:absolute;bottom:2px;font-size:10px;color:inherit;opacity:0.6">·</span></div>
+        <div class="fk-key f-mid-r">K</div>
+        <div class="fk-key f-ring-r">L</div>
+        <div class="fk-key f-pinky-r">;</div>
+      </div>
+      <!-- Row 4: ZXCV -->
+      <div class="fk-row" style="padding-left:60px">
+        <div class="fk-key f-pinky-l">Z</div><div class="fk-key f-ring-l">X</div><div class="fk-key f-mid-l">C</div><div class="fk-key f-index-l">V</div>
+        <div class="fk-key f-index-l">B</div><div class="fk-key f-index-r">N</div><div class="fk-key f-index-r">M</div><div class="fk-key f-mid-r">,</div>
+        <div class="fk-key f-ring-r">.</div><div class="fk-key f-pinky-r">/</div>
+      </div>
+      <!-- Space -->
+      <div class="fk-row" style="padding-left:172px">
+        <div class="fk-key f-thumb" style="width:260px">Space</div>
+      </div>
+    </div>
+
+    <div class="finger-legend">
+      <div class="fl-item"><div class="fl-dot" style="background:#c0453a"></div>Left Pinky</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--amber)"></div>Left Ring</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--green)"></div>Left Middle</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--blue)"></div>Left Index</div>
+      <div class="fl-item"><div class="fl-dot" style="background:#7f77dd"></div>Thumbs</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--blue)"></div>Right Index</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--green)"></div>Right Middle</div>
+      <div class="fl-item"><div class="fl-dot" style="background:var(--amber)"></div>Right Ring</div>
+      <div class="fl-item"><div class="fl-dot" style="background:#c0453a"></div>Right Pinky</div>
+    </div>
+    <p style="font-family:'Crimson Pro',serif;font-size:13px;color:var(--cream-muted);margin-top:14px">· = bump keys on F and J — feel for them without looking</p>
+  </div>
+
+  <div style="display:flex;gap:14px;margin-bottom:60px">
+    <a href="drills.html" class="btn-primary" style="font-size:10px;padding:11px 24px">Practice Home Row Drill →</a>
+    <button class="btn-ghost" onclick="showSection(document.querySelector('[onclick*=tips]'),'tips')" style="font-size:10px;padding:11px 24px">Read Speed Tips →</button>
+  </div>
+</div>
+
+<!-- SPEED TIPS -->
+<div class="learn-section" id="sec-tips">
+  <h2 class="display-md" style="margin-bottom:8px">Nine rules for faster typing</h2>
+  <p class="body-serif" style="max-width:560px;margin-bottom:36px">Every fast typist has internalized these. Most slow typists violate at least three.</p>
+
+  <div class="tips-grid">
+    <div class="tip-card"><div class="tip-num">01</div><div><div class="tip-title">Never look at the keyboard</div><p class="tip-text">Visual feedback from the keys is a crutch. Cover your hands if necessary. Your fingers need to build muscle memory — that can only happen through feel, not sight.</p></div></div>
+    <div class="tip-card"><div class="tip-num">02</div><div><div class="tip-title">Accuracy before speed</div><p class="tip-text">Typing wrong quickly is a bad habit that compounds. Slow down to type correctly. Your brain will gradually compress the time between keystrokes as accuracy solidifies.</p></div></div>
+    <div class="tip-card"><div class="tip-num">03</div><div><div class="tip-title">Return to home row after every keystroke</div><p class="tip-text">Your fingers should snap back to ASDF/JKL; between every key. This minimizes travel time and eliminates the "searching" phase that kills speed.</p></div></div>
+    <div class="tip-card"><div class="tip-num">04</div><div><div class="tip-title">Read two words ahead</div><p class="tip-text">While your fingers type the current word, your eyes should already be on the next one. This eliminates processing delays between words — the biggest hidden speed killer.</p></div></div>
+    <div class="tip-card"><div class="tip-num">05</div><div><div class="tip-title">Relax your hands</div><p class="tip-text">Tension in your hands slows you down and causes pain. Keep wrists slightly elevated, fingers relaxed. Type with the pads of your fingers, not the tips or nails.</p></div></div>
+    <div class="tip-card"><div class="tip-num">06</div><div><div class="tip-title">Drill the bigrams you miss</div><p class="tip-text">Most errors cluster around a handful of two-key combinations — "th", "in", "er", "re". Practice these pairs in isolation until they become automatic before returning to full passages.</p></div></div>
+    <div class="tip-card"><div class="tip-num">07</div><div><div class="tip-title">Practice consistently, not intensively</div><p class="tip-text">Fifteen minutes daily beats two hours on Saturday. Typing speed is a motor skill — it consolidates during rest. Regular short sessions outperform cramming by a significant margin.</p></div></div>
+    <div class="tip-card"><div class="tip-num">08</div><div><div class="tip-title">Use all ten fingers</div><p class="tip-text">If you're still hunt-and-pecking with six fingers, stop. Learn the correct assignment. You will get slower for two weeks. Then you will get dramatically faster forever.</p></div></div>
+    <div class="tip-card" style="grid-column:1/3"><div class="tip-num">09</div><div><div class="tip-title">Measure your weak keys obsessively</div><p class="tip-text">TypeFlow's analytics show you exactly which keys cause errors. Most typists have the same two or three weak spots: right pinky for punctuation, left index for B and G. Knowing is half the battle — drill the rest.</p></div></div>
+  </div>
+  <div style="margin-bottom:60px"><a href="drills.html" class="btn-primary" style="font-size:10px;padding:11px 24px">Open Drills →</a></div>
+</div>
+
+<!-- 30-DAY PLAN -->
+<div class="learn-section" id="sec-plan">
+  <h2 class="display-md" style="margin-bottom:8px">The 30-Day TypeFlow Plan</h2>
+  <p class="body-serif" style="max-width:600px;margin-bottom:36px">One session per day. Roughly 15 minutes. Each week builds on the previous. By day 30 most typists see a 30–50 WPM increase.</p>
+
+  <div class="plan-grid" id="plan-grid"></div>
+
+  <div style="display:flex;gap:12px;margin-bottom:60px">
+    <a href="practice.html" class="btn-primary" style="font-size:10px;padding:11px 24px">Start Day 1 →</a>
+    <button class="btn-ghost" onclick="clearPlan()" style="font-size:10px;padding:11px 24px">Reset Progress</button>
+  </div>
+</div>
+
+<!-- SCIENCE -->
+<div class="learn-section" id="sec-science">
+  <h2 class="display-md" style="margin-bottom:8px">The science of typing speed</h2>
+  <p class="body-serif" style="max-width:600px;margin-bottom:36px">Understanding how typing speed actually works — neurologically and mechanically — changes how you practice.</p>
+
+  <div class="science-layout">
+    <div class="sci-card">
+      <div class="sci-title">Motor memory & chunking</div>
+      <p class="sci-text">Typing speed isn't about finger speed — it's about how much of the work your brain has automated. Beginners type character by character. Advanced typists type in word-chunks. Expert typists process entire phrases as single motor programs.</p>
+      <p class="sci-text">This is why drills on common words and bigrams are so effective. You're building chunks, not reflexes. Once "the" is a single motor program, your brain executes it in one command — not three separate keypress decisions.</p>
+      <div class="sci-stat"><div class="sci-stat-num">~40</div><div class="sci-stat-lbl">characters per chunk for expert typists (vs ~1 for beginners)</div></div>
+    </div>
+    <div class="sci-card">
+      <div class="sci-title">The reaction time ceiling</div>
+      <p class="sci-text">Simple reaction time is approximately 150–200ms. At 60 WPM, you're pressing a key every 250ms. At 120 WPM, every 125ms — faster than conscious reaction time. This is only possible because you're not reacting to visual input; you're executing stored motor programs.</p>
+      <p class="sci-text">This explains why you can't "think faster" to type faster. The path is: build the motor programs through deliberate practice, then let them run automatically.</p>
+      <div class="sci-stat"><div class="sci-stat-num">125ms</div><div class="sci-stat-lbl">inter-key interval at 120 WPM — faster than conscious reaction</div></div>
+    </div>
+    <div class="sci-card">
+      <div class="sci-title">Why accuracy matters more than speed</div>
+      <p class="sci-text">When you type a wrong key and backspace, you execute at minimum 2 extra keystrokes. At an error rate of 5%, that costs you roughly 10% of your effective speed. Worse, backspacing creates a habit loop: your brain starts expecting to correct errors rather than preventing them.</p>
+      <p class="sci-text">TypeFlow's Strict Mode is designed to break this habit. No moving forward until the word is correct forces your brain to slow down and build accurate motor patterns first.</p>
+      <div class="sci-stat"><div class="sci-stat-num">10%</div><div class="sci-stat-lbl">effective WPM lost at just 5% error rate due to corrections</div></div>
+    </div>
+    <div class="sci-card">
+      <div class="sci-title">Rest and consolidation</div>
+      <p class="sci-text">Motor skills consolidate during sleep. Studies show that people who practice a motor task, sleep, and then test perform significantly better than those who practice the same amount without sleeping in between.</p>
+      <p class="sci-text">This is why the 30-Day Plan uses daily 15-minute sessions rather than occasional 2-hour marathons. You're giving your brain the rest intervals it needs to convert practice into permanent skill.</p>
+      <div class="sci-stat"><div class="sci-stat-num">15min</div><div class="sci-stat-lbl">optimal daily practice duration for motor skill consolidation</div></div>
+    </div>
+  </div>
+  <div style="margin-bottom:60px"><a href="practice.html" class="btn-primary" style="font-size:10px;padding:11px 24px">Apply This in Practice →</a></div>
+</div>
+
+<!-- WPM LEVELS -->
+<div class="learn-section" id="sec-levels">
+  <h2 class="display-md" style="margin-bottom:8px">Where does your WPM rank?</h2>
+  <p class="body-serif" style="max-width:560px;margin-bottom:32px">The average office worker types at 40 WPM. The average programmer types at 60. Here's the full spectrum.</p>
+
+  <div class="wpm-levels">
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:var(--red)">10–30</div>
+      <div><div class="wl-label">Hunt & Peck</div><div class="wl-desc">Looking at the keyboard, one or two fingers. This is where everyone starts. Leaving this stage requires committing to home row.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:15%;background:var(--red)"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:#c07830">30–50</div>
+      <div><div class="wl-label">Transitioning</div><div class="wl-desc">Building touch-typing habits. Inconsistent, occasionally looking down. Strong foundation forming beneath the surface.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:30%;background:#c07830"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:var(--amber)">50–70</div>
+      <div><div class="wl-label">Average Adult</div><div class="wl-desc">The speed of the average office worker. Functional for most tasks. This is where most people plateau — unnecessarily.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:50%;background:var(--amber)"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:var(--amber-bright)">70–100</div>
+      <div><div class="wl-label">Proficient</div><div class="wl-desc">Comfortable touch typist. Thinking faster than typing only rarely. Strong accuracy. Most developers and writers aim for this range.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:65%;background:var(--amber-bright)"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:var(--green)">100–130</div>
+      <div><div class="wl-label">Fast</div><div class="wl-desc">Top ~8% of typists. Ideas flow nearly as fast as they form. At this speed, typing becomes invisible — you think, words appear.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:80%;background:var(--green)"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:#4a9e8a">130–160</div>
+      <div><div class="wl-label">Very Fast</div><div class="wl-desc">Top ~2%. Competitive typing territory. Requires deliberate training, optimal key mapping, and excellent ergonomics.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:90%;background:#4a9e8a"></div></div></div>
+    </div>
+    <div class="wpm-level">
+      <div class="wl-speed" style="color:#85b7eb">160+</div>
+      <div><div class="wl-label">Elite</div><div class="wl-desc">The world record is 316 WPM (burst). Sustained 160+ requires near-perfect technique and years of deliberate practice. Achievable, but rare.</div></div>
+      <div class="wl-bar-wrap"><div class="wl-track"><div class="wl-fill" style="width:100%;background:#85b7eb"></div></div></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:60px;display:flex;gap:12px">
+    <a href="practice.html" class="btn-primary" style="font-size:10px;padding:11px 24px">Test Your WPM Now →</a>
+    <a href="stats.html" class="btn-ghost" style="font-size:10px;padding:11px 24px">See Your History →</a>
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('learn');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+function showSection(btn, id){
+  document.querySelectorAll('.tnav-item').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.learn-section').forEach(s=>s.classList.remove('show'));
+  if(btn) btn.classList.add('on');
+  document.getElementById('sec-'+id).classList.add('show');
+}
+
+// 30-Day Plan
+const PLAN_DAYS = [
+  {title:'Home Row Intro'},{title:'Home Row Speed'},{title:'Top Row Intro'},{title:'QWERTY Combined'},{title:'Review Day'},
+  {title:'Bottom Row Intro'},{title:'All Rows'},{title:'Common Words'},{title:'Short Sentences'},{title:'Review Day'},
+  {title:'Numbers 1-5'},{title:'Numbers 6-0'},{title:'All Numbers'},{title:'Punctuation Basics'},{title:'Review Day'},
+  {title:'Capital Letters'},{title:'Shift Technique'},{title:'Mixed Case'},{title:'Bigrams: th he'},{title:'Review Day'},
+  {title:'Bigrams: in er'},{title:'Code Symbols'},{title:'Speed Sprint 15s'},{title:'Speed Sprint 30s'},{title:'Review Day'},
+  {title:'Literature Passage'},{title:'Tech Passage'},{title:'Code Passage'},{title:'Full Speed Test'},{title:'Final Assessment'},
+];
+
+function buildPlan(){
+  const completed = JSON.parse(localStorage.getItem('tf_plan_days')||'[]');
+  const today = Math.floor(Date.now()/86400000);
+  const startDay = parseInt(localStorage.getItem('tf_plan_start')||today);
+  localStorage.setItem('tf_plan_start', startDay);
+  const currentDay = Math.min(29, today - startDay);
+  document.getElementById('plan-grid').innerHTML = PLAN_DAYS.map((d,i)=>{
+    const done = completed.includes(i);
+    const isToday = i === currentDay;
+    return `<div class="plan-day ${done?'done':''} ${isToday?'today':''}" onclick="toggleDay(${i})">
+      ${done?'<span class="pd-check">✓</span>':''}
+      <div class="pd-num ${done?'done':''} ${isToday?'today':''}">${i+1}</div>
+      <div class="pd-title" style="${isToday?'color:var(--amber)':''}">${d.title}${isToday?' ← Today':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDay(i){
+  const completed = JSON.parse(localStorage.getItem('tf_plan_days')||'[]');
+  const idx = completed.indexOf(i);
+  if(idx>=0) completed.splice(idx,1);
+  else completed.push(i);
+  localStorage.setItem('tf_plan_days', JSON.stringify(completed));
+  buildPlan();
+}
+
+function clearPlan(){
+  localStorage.removeItem('tf_plan_days');
+  localStorage.removeItem('tf_plan_start');
+  buildPlan();
+}
+
+buildPlan();
+</script>
+</body>
+</html>

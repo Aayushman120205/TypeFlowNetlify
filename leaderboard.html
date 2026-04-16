@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Leaderboard — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero { padding: 52px 48px 36px; max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.page-hero h1 { font-family: 'DM Serif Display', serif; font-size: 44px; color: var(--cream); margin-bottom: 8px; }
+.page-hero p { font-family: 'Crimson Pro', serif; font-size: 16px; color: var(--cream-muted); max-width: 500px; }
+
+.lb-layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 48px 80px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+/* DAILY CHALLENGE */
+.daily-challenge {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  padding: 32px;
+  margin: 0 48px 24px;
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.dc-bg {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'DM Serif Display', serif;
+  font-size: 160px;
+  color: var(--amber);
+  opacity: 0.03;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.dc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+
+.dc-badge {
+  background: var(--amber);
+  color: var(--ink);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dc-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--ink); animation: pulse 1.4s infinite; }
+
+.dc-timer { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--cream-muted); }
+.dc-timer span { font-size: 11px; color: var(--cream-muted); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
+
+.dc-body { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
+
+.dc-passage {
+  font-family: 'Crimson Pro', serif;
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--cream-dim);
+  padding: 20px;
+  background: var(--ink3);
+  border: 1px solid var(--border-dim);
+  border-left: 2px solid var(--amber);
+}
+
+.dc-cta { text-align: center; }
+.dc-rank { font-family: 'DM Serif Display', serif; font-size: 48px; color: var(--amber); line-height: 1; }
+.dc-rank-lbl { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream-muted); margin-top: 4px; margin-bottom: 16px; }
+.dc-status { margin-top: 10px; font-size: 10px; color: var(--cream-muted); line-height: 1.6; }
+.dc-status strong { color: var(--amber); font-weight: 400; }
+
+/* MAIN LEADERBOARD */
+.lb-table-wrap {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+
+.lb-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--ink3);
+}
+
+.lb-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  cursor: pointer;
+  color: var(--cream-muted);
+  border: none;
+  background: transparent;
+  transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+}
+
+.lb-tab:hover { color: var(--cream-dim); }
+.lb-tab.on { color: var(--amber); border-bottom-color: var(--amber); background: rgba(232,160,32,0.04); }
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 80px 80px 80px 80px;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(237,232,216,0.04);
+  transition: background 0.12s;
+}
+
+.lb-row:hover { background: var(--ink3); }
+.lb-row.header { background: var(--ink3); border-bottom: 1px solid var(--border-dim); padding: 8px 20px; }
+.lb-row.me { background: rgba(232,160,32,0.05); border-color: rgba(232,160,32,0.1); }
+
+.lb-rank { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--cream-muted); }
+.lb-rank.gold { color: #f5c040; }
+.lb-rank.silver { color: #c0c8d4; }
+.lb-rank.bronze { color: #c87840; }
+
+.lb-user { display: flex; align-items: center; gap: 10px; }
+
+.lb-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.lb-name { font-size: 12px; color: var(--cream-dim); }
+.lb-badge-row { display: flex; gap: 4px; margin-top: 2px; }
+.lb-micro-tag { font-size: 8px; padding: 1px 5px; border: 1px solid; letter-spacing: 0.06em; }
+.lb-wpm { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--amber); }
+.lb-acc { font-size: 11px; color: var(--cream-muted); }
+.lb-col-hd { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream-muted); }
+.lb-streak { font-size: 11px; color: var(--green); }
+.lb-country { font-size: 11px; color: var(--cream-muted); }
+
+/* SIDEBAR */
+.lb-sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+.side-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 22px;
+}
+
+.sc-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px; }
+
+.rec-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.rec-item:last-child { border-bottom: none; }
+.rec-cat { font-size: 11px; color: var(--cream-dim); text-transform: capitalize; }
+.rec-wpm { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--amber); }
+.rec-holder { font-size: 9px; color: var(--cream-muted); margin-top: 1px; }
+
+.dist-row { margin-bottom: 10px; }
+.dr-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.dr-label { font-size: 10px; color: var(--cream-dim); }
+.dr-val { font-size: 10px; color: var(--amber); }
+.dr-track { height: 4px; background: var(--ink5); }
+.dr-fill { height: 100%; }
+
+/* YOUR RANK */
+.your-rank-card {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+}
+
+.yr-num { font-family: 'DM Serif Display', serif; font-size: 56px; color: var(--amber); line-height: 1; }
+.yr-lbl { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cream-muted); margin-bottom: 16px; }
+.yr-wpm { font-size: 13px; color: var(--cream-muted); margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div>
+    <div class="eyebrow">Community rankings</div>
+    <h1>Leaderboard</h1>
+    <p>Daily challenges, all-time records, and category rankings. See how you stack up against 12,000+ active typists.</p>
+  </div>
+  <a href="practice.html" class="btn-primary" style="font-size:10px;padding:10px 22px">Submit a Score →</a>
+</div>
+
+<!-- DAILY CHALLENGE -->
+<div style="padding:0 48px;max-width:1300px;margin:0 auto 24px">
+  <div class="daily-challenge">
+    <div class="dc-bg" id="dc-day-number">—</div>
+    <div class="dc-header">
+      <div>
+        <div class="dc-badge">Daily Challenge</div>
+        <div id="dc-date-label" style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--cream);margin-top:10px">—</div>
+      </div>
+      <div class="dc-timer">
+        <span>Resets in</span><br>
+        <span id="dc-timer">—</span>
+      </div>
+    </div>
+    <div class="dc-body">
+      <div>
+        <div id="dc-category-label" style="font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:10px">Today's passage — Category: Literature</div>
+        <div class="dc-passage" id="dc-passage">—</div>
+        <div style="font-size:10px;color:var(--cream-muted);margin-top:10px">4,218 typists have completed today's challenge</div>
+      </div>
+      <div class="dc-cta">
+        <div class="dc-rank" id="my-daily-rank">—</div>
+        <div class="dc-rank-lbl">your rank today</div>
+        <a href="practice.html" id="dc-attempt-link" class="btn-primary" style="font-size:10px;padding:10px 22px;display:block">Attempt Challenge →</a>
+        <div class="dc-status" id="dc-status">Complete today’s challenge to start your streak.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="lb-layout">
+
+  <!-- LEADERBOARD TABLE -->
+  <div>
+    <div class="lb-table-wrap">
+      <div class="lb-tabs">
+        <button class="lb-tab on" onclick="showTab(this,'global')">Global</button>
+        <button class="lb-tab" onclick="showTab(this,'daily')">Today</button>
+        <button class="lb-tab" onclick="showTab(this,'tech')">Tech</button>
+        <button class="lb-tab" onclick="showTab(this,'lit')">Literature</button>
+        <button class="lb-tab" onclick="showTab(this,'code')">Code</button>
+      </div>
+
+      <div class="lb-row header">
+        <div class="lb-col-hd">#</div>
+        <div class="lb-col-hd">Typist</div>
+        <div class="lb-col-hd">WPM</div>
+        <div class="lb-col-hd">Accuracy</div>
+        <div class="lb-col-hd">Streak</div>
+        <div class="lb-col-hd">Location</div>
+      </div>
+
+      <div id="lb-rows"></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="lb-sidebar">
+
+    <!-- YOUR RANK -->
+    <div class="your-rank-card">
+      <div class="sc-title">Your standing</div>
+      <div class="yr-num" id="yr-rank">—</div>
+      <div class="yr-lbl">global rank</div>
+      <div class="yr-wpm" id="yr-wpm">Best WPM: —</div>
+      <div style="margin-top:14px">
+        <a href="practice.html" class="btn-outline" style="font-size:9px;display:block;text-align:center;padding:8px">Improve your rank →</a>
+      </div>
+    </div>
+
+    <!-- CATEGORY RECORDS -->
+    <div class="side-card">
+      <div class="sc-title">▸ Category Records</div>
+      <div class="rec-item">
+        <div><div class="rec-cat">Technology</div><div class="rec-holder">by_Tanaka_R</div></div>
+        <div class="rec-wpm">174</div>
+      </div>
+      <div class="rec-item">
+        <div><div class="rec-cat">Literature</div><div class="rec-holder">KeyboardWizard</div></div>
+        <div class="rec-wpm">162</div>
+      </div>
+      <div class="rec-item">
+        <div><div class="rec-cat">Code</div><div class="rec-holder">dev_null_99</div></div>
+        <div class="rec-wpm">158</div>
+      </div>
+      <div class="rec-item">
+        <div><div class="rec-cat">Science</div><div class="rec-holder">aurora_k</div></div>
+        <div class="rec-wpm">149</div>
+      </div>
+      <div class="rec-item">
+        <div><div class="rec-cat">Philosophy</div><div class="rec-holder">Patel_SW</div></div>
+        <div class="rec-wpm">143</div>
+      </div>
+    </div>
+
+    <!-- WPM DISTRIBUTION -->
+    <div class="side-card">
+      <div class="sc-title">▸ WPM Distribution</div>
+      <div class="dist-row">
+        <div class="dr-head"><span class="dr-label">120+ WPM</span><span class="dr-val">8%</span></div>
+        <div class="dr-track"><div class="dr-fill" style="width:8%;background:var(--amber)"></div></div>
+      </div>
+      <div class="dist-row">
+        <div class="dr-head"><span class="dr-label">80–120 WPM</span><span class="dr-val">24%</span></div>
+        <div class="dr-track"><div class="dr-fill" style="width:24%;background:var(--amber-dim)"></div></div>
+      </div>
+      <div class="dist-row">
+        <div class="dr-head"><span class="dr-label">60–80 WPM</span><span class="dr-val">35%</span></div>
+        <div class="dr-track"><div class="dr-fill" style="width:35%;background:var(--green-dim)"></div></div>
+      </div>
+      <div class="dist-row">
+        <div class="dr-head"><span class="dr-label">40–60 WPM</span><span class="dr-val">25%</span></div>
+        <div class="dr-track"><div class="dr-fill" style="width:25%;background:var(--ink5)"></div></div>
+      </div>
+      <div class="dist-row">
+        <div class="dr-head"><span class="dr-label">&lt;40 WPM</span><span class="dr-val">8%</span></div>
+        <div class="dr-track"><div class="dr-fill" style="width:8%;background:var(--ink5)"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script src="api.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('leaderboard');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+const AVATARS_BG = ['#185FA5','#0F6E56','#712B13','#534AB7','#3B6D11','#633806','#4a9e6a','#c0453a'];
+const DAILY_CATEGORIES = ['tech', 'literature', 'science', 'philosophy', 'code', 'quotes'];
+
+const LB_DATA = {
+  global: [
+    { rank:1, name:'Tanaka_Ren', initials:'TR', country:'JP', wpm:174, acc:99, streak:'47d', tags:['Elite','Record'] },
+    { rank:2, name:'KeyboardWizard', initials:'KW', country:'US', wpm:162, acc:98, streak:'22d', tags:['Elite'] },
+    { rank:3, name:'dev_null_99', initials:'DN', country:'DE', wpm:158, acc:97, streak:'31d', tags:['Code+'] },
+    { rank:4, name:'aurora_krishna', initials:'AK', country:'IN', wpm:149, acc:99, streak:'8d', tags:[] },
+    { rank:5, name:'Patel_SW', initials:'SP', country:'IN', wpm:143, acc:96, streak:'14d', tags:[] },
+    { rank:6, name:'velocityType', initials:'VT', country:'CA', wpm:138, acc:97, streak:'5d', tags:[] },
+    { rank:7, name:'MarcusT', initials:'MT', country:'US', wpm:136, acc:95, streak:'19d', tags:['Accurate'] },
+    { rank:8, name:'PriyaK_codes', initials:'PK', country:'IN', wpm:132, acc:98, streak:'12d', tags:['Accurate'] },
+    { rank:9, name:'swiftkeys', initials:'SK', country:'GB', wpm:128, acc:94, streak:'3d', tags:[] },
+    { rank:10, name:'aikoS_data', initials:'AS', country:'JP', wpm:124, acc:97, streak:'28d', tags:[] },
+    { rank:11, name:'typingNinja88', initials:'TN', country:'KR', wpm:119, acc:93, streak:'7d', tags:[] },
+    { rank:12, name:'ClaudeF', initials:'CF', country:'FR', wpm:114, acc:96, streak:'2d', tags:[] },
+  ],
+  daily: [
+    { rank:1, name:'aurora_krishna', initials:'AK', country:'IN', wpm:148, acc:99, streak:'today', tags:['Daily Best'] },
+    { rank:2, name:'Tanaka_Ren', initials:'TR', country:'JP', wpm:145, acc:98, streak:'today', tags:[] },
+    { rank:3, name:'PriyaK_codes', initials:'PK', country:'IN', wpm:139, acc:99, streak:'today', tags:[] },
+    { rank:4, name:'swiftkeys', initials:'SK', country:'GB', wpm:132, acc:96, streak:'today', tags:[] },
+    { rank:5, name:'velocityType', initials:'VT', country:'CA', wpm:127, acc:97, streak:'today', tags:[] },
+    { rank:6, name:'dev_null_99', initials:'DN', country:'DE', wpm:122, acc:95, streak:'today', tags:[] },
+    { rank:7, name:'MarcusT', initials:'MT', country:'US', wpm:118, acc:96, streak:'today', tags:[] },
+  ],
+};
+
+let bestWPM = null;
+let dailyChallenge = null;
+
+function getDayKey(date = new Date()){
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function seededIndex(seed, size){
+  let hash = 0;
+  for(let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+  return Math.abs(hash) % size;
+}
+
+function buildDailyChallenge(){
+  const key = getDayKey();
+  const categoryIndex = seededIndex(`cat-${key}`, DAILY_CATEGORIES.length);
+  const category = DAILY_CATEGORIES[categoryIndex];
+  const passageIndex = seededIndex(`passage-${key}`, PASSAGES[category].length);
+  const passage = PASSAGES[category][passageIndex];
+  return { key, category, passageIndex, passage };
+}
+
+function renderLB(data){
+  document.getElementById('lb-rows').innerHTML = data.map(r=>{
+    const rankClass = r.rank===1?'gold':r.rank===2?'silver':r.rank===3?'bronze':'';
+    const bgColor = AVATARS_BG[(r.name.charCodeAt(0)||0) % AVATARS_BG.length];
+    const tagsHtml = r.tags.map(t=>`<span class="lb-micro-tag" style="border-color:var(--border-mid);color:var(--cream-muted)">${t}</span>`).join('');
+    return `<div class="lb-row ${r.isMe?'me':''}">
+      <div class="lb-rank ${rankClass}">${r.rank===1?'◆':r.rank===2?'◈':r.rank===3?'◉':r.rank}</div>
+      <div class="lb-user">
+        <div class="lb-avatar" style="background:${bgColor}20;color:${bgColor};border:1px solid ${bgColor}40">${r.initials}</div>
+        <div>
+          <div class="lb-name" style="${r.isMe?'color:var(--amber)':''}">${r.name}${r.isMe?' (you)':''}</div>
+          <div class="lb-badge-row">${tagsHtml}</div>
+        </div>
+      </div>
+      <div class="lb-wpm">${r.wpm}</div>
+      <div class="lb-acc">${r.acc}%</div>
+      <div class="lb-streak" style="color:${r.streak.includes('d')&&parseInt(r.streak)>10?'var(--amber)':'var(--green)'}">${r.streak}</div>
+      <div class="lb-country">${r.country}</div>
+    </div>`;
+  }).join('');
+}
+
+function showTab(btn, tab){
+  document.querySelectorAll('.lb-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderLB(LB_DATA[tab]||LB_DATA.global);
+}
+
+function updateDailyChallengeDate(){
+  const now = new Date();
+  document.getElementById('dc-day-number').textContent = now.getDate();
+  document.getElementById('dc-date-label').textContent = now.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function titleCaseCategory(category){
+  return category === 'tech' ? 'Technology' : category.charAt(0).toUpperCase() + category.slice(1);
+}
+
+function renderDailyChallenge(){
+  dailyChallenge = buildDailyChallenge();
+  document.getElementById('dc-passage').textContent = `"${dailyChallenge.passage}"`;
+  document.getElementById('dc-category-label').textContent = `Today's passage — Category: ${titleCaseCategory(dailyChallenge.category)}`;
+  document.getElementById('dc-attempt-link').href = `practice.html?challenge=daily&key=${encodeURIComponent(dailyChallenge.key)}&cat=${encodeURIComponent(dailyChallenge.category)}&idx=${dailyChallenge.passageIndex}`;
+}
+
+function computeDailyStreak(sessions){
+  const completedKeys = [...new Set(
+    sessions
+      .filter(session => session.mode === 'daily-challenge' && session.challengeKey)
+      .map(session => session.challengeKey)
+  )].sort().reverse();
+
+  let streak = 0;
+  let cursor = new Date();
+
+  while(true){
+    const key = getDayKey(cursor);
+    if(!completedKeys.includes(key)) break;
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function updateDailyStatus(sessions){
+  const completedToday = sessions.some(session => session.mode === 'daily-challenge' && session.challengeKey === dailyChallenge.key);
+  const streak = computeDailyStreak(sessions);
+  document.getElementById('dc-status').innerHTML = completedToday
+    ? `Completed today: <strong>yes</strong><br>Current streak: <strong>${streak} day${streak === 1 ? '' : 's'}</strong>`
+    : `Completed today: <strong>no</strong><br>Current streak: <strong>${streak} day${streak === 1 ? '' : 's'}</strong>`;
+}
+
+// Daily countdown
+function updateTimer(){
+  const now = new Date();
+  const tomorrow = new Date(now); tomorrow.setHours(24,0,0,0);
+  const diff = tomorrow - now;
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  document.getElementById('dc-timer').textContent = `${h}h ${m}m ${s}s`;
+}
+
+setInterval(updateTimer, 1000);
+updateDailyChallengeDate();
+renderDailyChallenge();
+updateTimer();
+renderLB(LB_DATA.global);
+
+async function hydrateLeaderboard(){
+  try{
+    const [sessions, remoteLeaderboard] = await Promise.all([
+      getUserSessions(),
+      getLeaderboard()
+    ]);
+
+    bestWPM = sessions.length ? Math.max(...sessions.map(s=>s.wpm)) : null;
+    updateDailyStatus(sessions);
+
+    if(remoteLeaderboard.length){
+      LB_DATA.global = remoteLeaderboard;
+    }
+
+    if(bestWPM){
+      const user = getCurrentUser();
+      const bestAcc = sessions.find(s=>s.wpm===bestWPM)?.acc || 95;
+      const hasMe = LB_DATA.global.some(r => user && r.userId === user.id);
+
+      if(!hasMe){
+        LB_DATA.global.push({
+          rank: LB_DATA.global.length + 1,
+          name: user?.name || 'You',
+          initials: (user?.name || 'ME').slice(0,2).toUpperCase(),
+          country:'—',
+          wpm:bestWPM,
+          acc:bestAcc,
+          streak:`${sessions.length}x`,
+          tags:['You'],
+          isMe:true,
+          avBg:user?.avBg,
+          avBorder:user?.avBorder,
+          avText:user?.avText
+        });
+      } else {
+        LB_DATA.global = LB_DATA.global.map(row => ({
+          ...row,
+          isMe: user && row.userId === user.id
+        }));
+      }
+
+      LB_DATA.global.sort((a,b)=>b.wpm-a.wpm).forEach((r,i)=>r.rank=i+1);
+      const meRank = LB_DATA.global.find(r=>r.isMe)?.rank;
+      if(meRank){
+        document.getElementById('yr-rank').textContent='#'+meRank;
+        document.getElementById('yr-wpm').textContent='Best WPM: '+bestWPM;
+      }
+
+      const todaysSessions = sessions.filter(session => session.mode === 'daily-challenge' && session.challengeKey === dailyChallenge.key);
+      const dailyBest = todaysSessions.length ? Math.max(...todaysSessions.map(session => session.wpm)) : null;
+      if(dailyBest !== null){
+        const allWPMs = [148,145,139,132,127,122,118,dailyBest].sort((a,b)=>b-a);
+        document.getElementById('my-daily-rank').textContent = '#'+(allWPMs.indexOf(dailyBest)+1);
+      } else {
+        document.getElementById('my-daily-rank').textContent = '—';
+      }
+    } else {
+      document.getElementById('my-daily-rank').textContent = '—';
+    }
+
+    renderLB(LB_DATA.global);
+  }catch(error){
+    console.error('Failed to hydrate leaderboard from API', error);
+    const sessions = JSON.parse(localStorage.getItem('tf_sessions')||'[]');
+    updateDailyStatus(sessions);
+    bestWPM = sessions.length ? Math.max(...sessions.map(s=>s.wpm)) : null;
+    if(bestWPM){
+      const bestAcc = sessions.find(s=>s.wpm===bestWPM)?.acc || 95;
+      LB_DATA.global.push({ rank: LB_DATA.global.length+1, name:'You', initials:'ME', country:'—', wpm:bestWPM, acc:bestAcc, streak:'—', tags:['You'], isMe:true });
+      LB_DATA.global.sort((a,b)=>b.wpm-a.wpm).forEach((r,i)=>r.rank=i+1);
+      const meRank = LB_DATA.global.find(r=>r.isMe)?.rank;
+      if(meRank){ document.getElementById('yr-rank').textContent='#'+meRank; document.getElementById('yr-wpm').textContent='Best WPM: '+bestWPM; }
+      const todaysSessions = sessions.filter(session => session.mode === 'daily-challenge' && session.challengeKey === dailyChallenge.key);
+      const dailyBest = todaysSessions.length ? Math.max(...todaysSessions.map(session => session.wpm)) : null;
+      if(dailyBest !== null){
+        const allWPMs = [148,145,139,132,127,122,118,dailyBest].sort((a,b)=>b-a);
+        document.getElementById('my-daily-rank').textContent = '#'+(allWPMs.indexOf(dailyBest)+1);
+      } else {
+        document.getElementById('my-daily-rank').textContent = '—';
+      }
+      renderLB(LB_DATA.global);
+    } else {
+      document.getElementById('my-daily-rank').textContent = '—';
+    }
+  }
+}
+
+hydrateLeaderboard();
+</script>
+</body>
+</html>

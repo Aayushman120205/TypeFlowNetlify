@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TypeFlow — Precision Typing Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* ── HERO ── */
+.hero {
+  min-height: 92vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+  padding: 80px 48px 60px;
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 70% 50%, rgba(232,160,32,0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-lede {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hero-lede::before { content: '▮'; font-size: 10px; animation: blink 1.2s step-start infinite; }
+
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(52px, 6.5vw, 86px);
+  line-height: 1.02;
+  color: var(--cream);
+  margin-bottom: 28px;
+  letter-spacing: -0.02em;
+}
+
+.hero-sub {
+  font-family: 'Crimson Pro', serif;
+  font-size: 20px;
+  line-height: 1.7;
+  color: var(--cream-dim);
+  max-width: 460px;
+  margin-bottom: 40px;
+}
+
+.hero-btns { display: flex; gap: 14px; align-items: center; margin-bottom: 56px; }
+
+.hero-proof {
+  display: flex;
+  gap: 32px;
+}
+
+.proof-item { }
+.proof-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: var(--amber);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.proof-lbl { font-size: 10px; color: var(--cream-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* TERMINAL */
+.terminal-wrap {
+  position: relative;
+}
+
+.terminal {
+  background: var(--ink2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.terminal-chrome {
+  background: var(--ink3);
+  padding: 11px 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.t-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+.terminal-chrome .t-title {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--cream-muted);
+  letter-spacing: 0.05em;
+}
+
+.terminal-body { padding: 24px; }
+
+.t-passage {
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  line-height: 2;
+  color: var(--cream-muted);
+  margin-bottom: 20px;
+}
+
+.t-passage .ok { color: var(--green); }
+.t-passage .cur { color: var(--cream); background: rgba(232,160,32,0.18); padding: 0 2px; border-radius: 2px; }
+
+.t-metrics {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 1px;
+  background: var(--border-dim);
+}
+
+.t-metric {
+  background: var(--ink3);
+  padding: 14px 16px;
+}
+
+.t-metric-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.t-metric-lbl { font-size: 9px; color: var(--cream-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.live-badge {
+  position: absolute;
+  top: -12px;
+  right: 20px;
+  background: var(--green);
+  color: var(--ink);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-badge::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* ── PAGE NAV CARDS ── */
+.pages-section {
+  padding: 80px 48px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.pages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.page-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 32px 28px 28px;
+  text-decoration: none;
+  display: block;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 2px;
+  background: var(--amber);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s;
+}
+
+.page-card:hover { border-color: var(--border); background: var(--ink3); transform: translateY(-2px); }
+.page-card:hover::before { transform: scaleX(1); }
+
+.pc-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+  display: block;
+  line-height: 1;
+}
+
+.pc-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--cream);
+  margin-bottom: 10px;
+}
+
+.pc-desc {
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--cream-muted);
+  margin-bottom: 20px;
+}
+
+.pc-tag { }
+
+.pc-arrow {
+  position: absolute;
+  bottom: 28px; right: 28px;
+  font-size: 18px;
+  color: var(--amber);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: all 0.2s;
+}
+
+.page-card:hover .pc-arrow { opacity: 1; transform: translateX(0); }
+
+/* ── FEATURES STRIP ── */
+.features-strip {
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--ink2);
+  padding: 72px 48px;
+}
+
+.features-inner {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border-dim);
+  border: 1px solid var(--border-dim);
+  margin-top: 40px;
+}
+
+.feat {
+  background: var(--ink2);
+  padding: 32px 28px;
+  transition: background 0.2s;
+}
+
+.feat:hover { background: var(--ink3); }
+
+.feat-icon {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 14px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.feat-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--cream);
+  margin-bottom: 10px;
+}
+
+.feat-desc {
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--cream-muted);
+}
+
+/* ── TESTIMONIALS ── */
+.test-section {
+  padding: 80px 48px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.test-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.test-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 28px;
+  position: relative;
+}
+
+.test-quote-mark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 64px;
+  color: var(--amber);
+  opacity: 0.1;
+  position: absolute;
+  top: 8px; left: 14px;
+  line-height: 1;
+}
+
+.test-text {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--cream-dim);
+  padding-top: 20px;
+  margin-bottom: 22px;
+}
+
+.test-author { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); }
+.test-wpm { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--cream); float: right; }
+
+/* ── CTA BAND ── */
+.cta-band {
+  background: var(--ink2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 72px 48px;
+  text-align: center;
+}
+
+.cta-band h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(32px, 4vw, 52px);
+  color: var(--cream);
+  max-width: 600px;
+  margin: 0 auto 28px;
+  line-height: 1.15;
+}
+
+.cta-band p {
+  font-family: 'Crimson Pro', serif;
+  font-size: 18px;
+  color: var(--cream-muted);
+  margin-bottom: 32px;
+}
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div>
+    <p class="hero-lede anim-1">Precision typing trainer</p>
+    <h1 class="anim-2">Type <em>faster.</em><br>Think <em>clearer.</em></h1>
+    <p class="hero-sub anim-3">A professional typing environment with real-time analytics, adaptive passages, and the precision feedback that actually makes you faster — measurably, reliably.</p>
+    <div class="hero-btns anim-4">
+      <a href="practice.html" class="btn-primary">Begin Session →</a>
+      <a href="learn.html" class="btn-ghost">Learn the method</a>
+    </div>
+    <div class="hero-proof anim-5">
+      <div class="proof-item"><div class="proof-num">142</div><div class="proof-lbl">Avg WPM in 30 days</div></div>
+      <div class="proof-item"><div class="proof-num">12K+</div><div class="proof-lbl">Daily active typists</div></div>
+      <div class="proof-item"><div class="proof-num">98%</div><div class="proof-lbl">Accuracy improvement</div></div>
+    </div>
+  </div>
+
+  <div class="terminal-wrap anim-3">
+    <div class="live-badge">Live session</div>
+    <div class="terminal">
+      <div class="terminal-chrome">
+        <div class="t-dot" style="background:#c0453a"></div>
+        <div class="t-dot" style="background:#b07a14"></div>
+        <div class="t-dot" style="background:#4a9e6a"></div>
+        <span class="t-title">typeflow — practice session</span>
+      </div>
+      <div class="terminal-body">
+        <div class="t-passage">
+          <span class="ok">The quick brown fox </span><span class="cur">jumps</span><span style="color:var(--cream-muted)"> over the lazy dog. Precision and speed come with practice.</span>
+        </div>
+        <div class="t-metrics">
+          <div class="t-metric">
+            <div class="t-metric-val" style="color:var(--amber)">94</div>
+            <div class="t-metric-lbl">words / min</div>
+          </div>
+          <div class="t-metric">
+            <div class="t-metric-val" style="color:var(--green)">97%</div>
+            <div class="t-metric-lbl">accuracy</div>
+          </div>
+          <div class="t-metric">
+            <div class="t-metric-val" style="color:var(--cream-dim)">0:42</div>
+            <div class="t-metric-lbl">elapsed</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE NAVIGATION CARDS -->
+<section class="pages-section">
+  <div class="section-divider">Explore TypeFlow</div>
+  <h2 class="display-md" style="max-width:500px;margin-bottom:8px">Everything you need<br><em>in one place</em></h2>
+  <div class="pages-grid">
+    <a href="practice.html" class="page-card">
+      <span class="pc-icon">⌨</span>
+      <div class="pc-title">Practice Arena</div>
+      <p class="pc-desc">Three-panel workspace — reader, typing arena, and live analytics side by side. Free flow or timed sprints.</p>
+      <span class="tag">Core feature</span>
+      <div class="pc-arrow">→</div>
+    </a>
+    <a href="drills.html" class="page-card">
+      <span class="pc-icon">◈</span>
+      <div class="pc-title">Targeted Drills</div>
+      <p class="pc-desc">Isolate and eliminate your weak keys. Home row, bigrams, numbers, punctuation — drill anything.</p>
+      <span class="tag">Skill building</span>
+      <div class="pc-arrow">→</div>
+    </a>
+    <a href="stats.html" class="page-card">
+      <span class="pc-icon">◉</span>
+      <div class="pc-title">Analytics</div>
+      <p class="pc-desc">WPM history, accuracy curves, keyboard heatmaps, and 30-day progress charts. Know exactly where you stand.</p>
+      <span class="tag">Insights</span>
+      <div class="pc-arrow">→</div>
+    </a>
+    <a href="leaderboard.html" class="page-card">
+      <span class="pc-icon">▲</span>
+      <div class="pc-title">Leaderboard</div>
+      <p class="pc-desc">Daily challenges, world rankings, and category-specific records. Compete — or just see how fast the best are.</p>
+      <span class="tag">Community</span>
+      <div class="pc-arrow">→</div>
+    </a>
+    <a href="learn.html" class="page-card">
+      <span class="pc-icon">◐</span>
+      <div class="pc-title">Learn & Improve</div>
+      <p class="pc-desc">Finger placement guides, speed science, posture tips, and a structured 30-day improvement plan.</p>
+      <span class="tag">Education</span>
+      <div class="pc-arrow">→</div>
+    </a>
+    <a href="practice.html" class="page-card" style="background:var(--ink3);border-color:var(--border);">
+      <span class="pc-icon" style="color:var(--amber)">▮</span>
+      <div class="pc-title">Start Right Now</div>
+      <p class="pc-desc">No account needed. Pick a passage, set a mode, and start measuring your speed in under ten seconds.</p>
+      <span class="tag" style="background:var(--amber-glow)">Free forever</span>
+      <div class="pc-arrow">→</div>
+    </a>
+  </div>
+</section>
+
+<!-- FEATURES STRIP -->
+<div class="features-strip">
+  <div class="features-inner">
+    <div class="section-divider">Why TypeFlow is different</div>
+    <h2 class="display-md" style="max-width:520px">Built for typists who want <em>real results</em></h2>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon">01 — workspace</div><div class="feat-title">Three-panel environment</div><p class="feat-desc">Reader, Arena, and Analytics live together. No tabbing, no context switching.</p></div>
+      <div class="feat"><div class="feat-icon">02 — analysis</div><div class="feat-title">Keystroke-level insight</div><p class="feat-desc">Every keypress measured. Miss "f" three times? The system knows — and drills you.</p></div>
+      <div class="feat"><div class="feat-icon">03 — content</div><div class="feat-title">Adaptive passage library</div><p class="feat-desc">Literature, code, science, philosophy. Difficulty scales with your WPM automatically.</p></div>
+      <div class="feat"><div class="feat-icon">04 — modes</div><div class="feat-title">Timed sprint modes</div><p class="feat-desc">15s, 30s, 60s sprints or free flow. The right mode for warmups and max-effort tests.</p></div>
+      <div class="feat"><div class="feat-icon">05 — training</div><div class="feat-title">Targeted drill system</div><p class="feat-desc">Isolate bigrams, home row, punctuation. Weakest fingers get the most work.</p></div>
+      <div class="feat"><div class="feat-icon">06 — community</div><div class="feat-title">Daily challenge + ranking</div><p class="feat-desc">Same passage, everyone competes. See where you rank against 12,000+ typists.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<section class="test-section">
+  <div class="section-divider">From the community</div>
+  <h2 class="display-md">What typists say</h2>
+  <div class="test-grid">
+    <div class="test-card">
+      <div class="test-quote-mark">"</div>
+      <p class="test-text">Went from 72 to 118 WPM in six weeks. The missed-key tracker alone is worth it — I never knew I was murdering the letter F.</p>
+      <div><span class="test-author">Priya K. — Software Eng.</span><span class="test-wpm">118</span></div>
+    </div>
+    <div class="test-card">
+      <div class="test-quote-mark">"</div>
+      <p class="test-text">The three-panel layout is genius. Being able to see the text, type, and watch the WPM graph simultaneously changed how I practice.</p>
+      <div><span class="test-author">Marcus T. — Writer</span><span class="test-wpm">94</span></div>
+    </div>
+    <div class="test-card">
+      <div class="test-quote-mark">"</div>
+      <p class="test-text">Strict mode is brutal. Absolutely brutal. I went from 60% accuracy to 97% in two months because of it. No other app does this.</p>
+      <div><span class="test-author">Aiko S. — Data Analyst</span><span class="test-wpm">136</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-band">
+  <h2>Ready to measure what you're actually capable of?</h2>
+  <p>No sign-up. No friction. Just you and the keyboard.</p>
+  <a href="practice.html" class="btn-primary" style="font-size:12px;padding:15px 36px">Open Practice Arena →</a>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('home');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+</script>
+</body>
+</html>

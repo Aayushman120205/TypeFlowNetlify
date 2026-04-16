@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Analytics — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-hero { padding: 52px 48px 36px; max-width: 1300px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.page-hero h1 { font-family: 'DM Serif Display', serif; font-size: 44px; color: var(--cream); margin-bottom: 8px; }
+.page-hero p { font-family: 'Crimson Pro', serif; font-size: 16px; color: var(--cream-muted); }
+
+.stats-layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 48px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* TOP KPI ROW */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border-dim);
+  border: 1px solid var(--border-dim);
+}
+
+.kpi {
+  background: var(--ink2);
+  padding: 22px 20px;
+}
+
+.kpi-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cream-muted); margin-bottom: 6px; }
+.kpi-val { font-family: 'DM Serif Display', serif; font-size: 38px; color: var(--amber); line-height: 1; margin-bottom: 4px; }
+.kpi-sub { font-size: 10px; color: var(--cream-muted); }
+.kpi-delta { font-size: 10px; color: var(--green); }
+.kpi-delta.down { color: var(--red); }
+
+/* CHART AREA */
+.chart-area {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  padding: 24px;
+}
+
+.cc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.cc-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+.cc-sub { font-size: 11px; color: var(--cream-muted); font-family: 'Crimson Pro', serif; }
+
+/* WPM HISTORY CHART */
+.wpm-chart { height: 180px; display: flex; align-items: flex-end; gap: 4px; padding-bottom: 24px; position: relative; }
+
+.wpm-chart-bar {
+  flex: 1;
+  background: var(--ink4);
+  border-radius: 2px 2px 0 0;
+  min-height: 3px;
+  transition: all 0.3s;
+  position: relative;
+  cursor: pointer;
+}
+
+.wpm-chart-bar:hover { background: var(--amber-dim); }
+.wpm-chart-bar.peak { background: var(--amber); }
+.wpm-chart-bar::after { content: attr(data-val); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--cream-muted); white-space: nowrap; opacity: 0; transition: opacity 0.15s; }
+.wpm-chart-bar:hover::after { opacity: 1; }
+
+.chart-xaxis { display: flex; justify-content: space-between; margin-top: 8px; }
+.chart-xaxis span { font-size: 9px; color: var(--cream-muted); letter-spacing: 0.04em; }
+
+/* ACCURACY PIE */
+.acc-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.acc-ring {
+  width: 120px;
+  height: 120px;
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.acc-ring svg { transform: rotate(-90deg); }
+
+.acc-ring-val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--amber);
+}
+
+/* BOTTOM GRID */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* SESSION HISTORY TABLE */
+.session-table {
+  background: var(--ink2);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+
+.st-head { padding: 16px 20px; border-bottom: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; }
+.st-title { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--amber); }
+
+table { width: 100%; border-collapse: collapse; }
+th { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream-muted); padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border-dim); font-weight: 400; }
+td { font-size: 11px; color: var(--cream-dim); padding: 10px 16px; border-bottom: 1px solid rgba(237,232,216,0.04); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--ink3); }
+td.amber { color: var(--amber); font-family: 'DM Serif Display', serif; font-size: 16px; }
+td.green { color: var(--green); }
+td.red { color: var(--red); }
+
+/* CATEGORY BREAKDOWN */
+.cat-breakdown { background: var(--ink2); border: 1px solid var(--border-dim); padding: 24px; }
+
+.cat-bar-row { margin-bottom: 14px; }
+.cbr-head { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.cbr-name { font-size: 11px; color: var(--cream-dim); }
+.cbr-val { font-size: 11px; color: var(--amber); font-family: 'DM Serif Display', serif; }
+.cbr-track { height: 4px; background: var(--ink5); }
+.cbr-fill { height: 100%; transition: width 0.5s; }
+
+/* PERSONAL BESTS */
+.pb-grid { background: var(--ink2); border: 1px solid var(--border-dim); padding: 24px; }
+
+.pb-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.pb-item:last-child { border-bottom: none; }
+.pb-label { font-size: 11px; color: var(--cream-muted); }
+.pb-val { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--amber); }
+.pb-date { font-size: 9px; color: var(--cream-muted); text-align: right; }
+
+/* NO DATA STATE */
+.no-data {
+  text-align: center;
+  padding: 60px 24px;
+  border: 1px dashed var(--border-dim);
+}
+
+.no-data p { font-family: 'Crimson Pro', serif; font-size: 16px; color: var(--cream-muted); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="page-hero">
+  <div>
+    <div class="eyebrow">Progress tracking</div>
+    <h1>Analytics</h1>
+    <p>Your complete typing history — WPM trends, accuracy curves, personal bests, and category breakdowns.</p>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn-outline" onclick="clearData()">Clear Data</button>
+    <a href="practice.html" class="btn-primary" style="font-size:10px;padding:10px 22px">Add Session →</a>
+  </div>
+</div>
+
+<div class="stats-layout">
+
+  <!-- KPI ROW -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi"><div class="kpi-label">Best WPM</div><div class="kpi-val" id="k-best">—</div><div class="kpi-sub">all time</div></div>
+    <div class="kpi"><div class="kpi-label">Avg WPM</div><div class="kpi-val" id="k-avg">—</div><div class="kpi-sub">last 10 sessions</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Accuracy</div><div class="kpi-val" id="k-acc" style="font-size:28px">—%</div><div class="kpi-sub">all sessions</div></div>
+    <div class="kpi"><div class="kpi-label">Total Sessions</div><div class="kpi-val" id="k-sess">0</div><div class="kpi-sub">completed</div></div>
+    <div class="kpi"><div class="kpi-label">Total Time</div><div class="kpi-val" id="k-time" style="font-size:28px">0m</div><div class="kpi-sub">typing practice</div></div>
+  </div>
+
+  <!-- CHART AREA -->
+  <div class="chart-area">
+    <div class="chart-card">
+      <div class="cc-head">
+        <div>
+          <div class="cc-title">▸ WPM History</div>
+          <div class="cc-sub" id="cc-range">last 20 sessions</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <span class="tag">Trend</span>
+        </div>
+      </div>
+      <div class="wpm-chart" id="wpm-chart"></div>
+      <div class="chart-xaxis" id="chart-xaxis"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="cc-head">
+        <div>
+          <div class="cc-title">▸ Average Accuracy</div>
+          <div class="cc-sub">all sessions</div>
+        </div>
+      </div>
+      <div class="acc-display">
+        <div class="acc-ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--ink4)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--amber)" stroke-width="10" stroke-linecap="round"
+              stroke-dasharray="314" id="acc-ring-stroke" stroke-dashoffset="314" style="transition:stroke-dashoffset 1s ease"/>
+          </svg>
+          <div class="acc-ring-val" id="acc-ring-val">—%</div>
+        </div>
+        <div style="font-size:10px;color:var(--cream-muted);text-align:center;letter-spacing:0.06em">accuracy across all sessions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="bottom-grid">
+
+    <!-- SESSION TABLE -->
+    <div class="session-table" style="grid-column:1/3">
+      <div class="st-head">
+        <span class="st-title">▸ Recent sessions</span>
+        <span style="font-size:10px;color:var(--cream-muted)" id="sess-count">0 sessions</span>
+      </div>
+      <div id="table-wrap">
+        <div class="no-data">
+          <p>No sessions recorded yet.</p>
+          <a href="practice.html" class="btn-primary" style="font-size:10px;padding:10px 22px">Start Practicing →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERSONAL BESTS -->
+    <div class="pb-grid">
+      <div class="cc-title" style="margin-bottom:16px">▸ Personal bests</div>
+      <div class="pb-item"><div><div class="pb-label">Overall WPM</div></div><div class="pb-val" id="pb-wpm">—</div></div>
+      <div class="pb-item"><div><div class="pb-label">Best Accuracy</div></div><div class="pb-val" id="pb-acc">—%</div></div>
+      <div class="pb-item"><div><div class="pb-label">Most Errors</div></div><div class="pb-val" id="pb-err" style="color:var(--red)">—</div></div>
+      <div class="pb-item"><div><div class="pb-label">Longest Session</div></div><div class="pb-val" id="pb-time">—s</div></div>
+      <div class="pb-item"><div><div class="pb-label">Favourite Category</div></div><div class="pb-val" id="pb-cat" style="font-size:16px;text-transform:capitalize">—</div></div>
+      <div style="margin-top:20px">
+        <a href="practice.html" class="btn-outline" style="font-size:9px;display:block;text-align:center;padding:8px">Break a record →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY BREAKDOWN -->
+  <div class="cat-breakdown">
+    <div class="cc-title" style="margin-bottom:18px">▸ WPM by category</div>
+    <div id="cat-bars"></div>
+  </div>
+
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="shared.js"></script>
+<script src="api.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('stats');
+document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
+
+async function loadStats(){
+  let sessions = [];
+  try{
+    sessions = await getUserSessions();
+  }catch(error){
+    console.error('Failed to load stats from API, using local data.', error);
+    sessions = JSON.parse(localStorage.getItem('tf_sessions')||'[]');
+  }
+  const n = sessions.length;
+
+  if(n===0){ renderEmpty(); return; }
+
+  // KPIs
+  const wpms = sessions.map(s=>s.wpm);
+  const accs = sessions.map(s=>s.acc);
+  const best = Math.max(...wpms);
+  const last10 = wpms.slice(-10);
+  const avg = Math.round(last10.reduce((a,b)=>a+b,0)/last10.length);
+  const avgAcc = Math.round(accs.reduce((a,b)=>a+b,0)/n);
+  const totalTime = sessions.reduce((a,s)=>a+(s.time||0),0);
+
+  document.getElementById('k-best').textContent = best;
+  document.getElementById('k-avg').textContent = avg||'—';
+  document.getElementById('k-acc').textContent = avgAcc+'%';
+  document.getElementById('k-sess').textContent = n;
+  document.getElementById('k-time').textContent = totalTime>=60?Math.round(totalTime/60)+'m':totalTime+'s';
+
+  // WPM Chart
+  const recent = sessions.slice(-20);
+  const maxW = Math.max(...recent.map(s=>s.wpm), 1);
+  const chartEl = document.getElementById('wpm-chart');
+  chartEl.innerHTML = recent.map((s,i)=>{
+    const h = Math.max(3, Math.round((s.wpm/maxW)*160));
+    const isPeak = s.wpm===best;
+    return `<div class="wpm-chart-bar ${isPeak?'peak':''}" style="height:${h}px" data-val="${s.wpm} WPM"></div>`;
+  }).join('');
+  document.getElementById('chart-xaxis').innerHTML = `<span>Session 1</span><span>Session ${recent.length}</span>`;
+
+  // Accuracy Ring
+  const circ = 314;
+  const offset = circ - (circ * avgAcc/100);
+  document.getElementById('acc-ring-stroke').style.strokeDashoffset = offset;
+  document.getElementById('acc-ring-val').textContent = avgAcc+'%';
+
+  // Session Table
+  const rows = sessions.slice(-15).reverse().map(s=>{
+    const d = new Date(s.date);
+    const dateStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+    const wpmColor = s.wpm>=100?'green':s.wpm>=60?'amber':'red';
+    return `<tr>
+      <td>${dateStr}</td>
+      <td class="amber">${s.wpm}</td>
+      <td class="${s.acc>=95?'green':s.acc>=80?'':'red'}">${s.acc}%</td>
+      <td class="${s.errors>5?'red':''}">${s.errors||0}</td>
+      <td style="text-transform:capitalize;color:var(--cream-muted)">${s.cat||'—'}</td>
+      <td style="color:var(--cream-muted)">${s.time||'—'}s</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('table-wrap').innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>WPM</th><th>Accuracy</th><th>Errors</th><th>Category</th><th>Time</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  document.getElementById('sess-count').textContent = n+' sessions';
+
+  // PBs
+  document.getElementById('pb-wpm').textContent = best;
+  document.getElementById('pb-acc').textContent = Math.max(...accs)+'%';
+  document.getElementById('pb-err').textContent = Math.max(...sessions.map(s=>s.errors||0));
+  document.getElementById('pb-time').textContent = Math.max(...sessions.map(s=>s.time||0))+'s';
+  const catCount = {};
+  sessions.forEach(s=>{ catCount[s.cat]=(catCount[s.cat]||0)+1; });
+  const favCat = Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('pb-cat').textContent = favCat?favCat[0]:'—';
+
+  // Category bars
+  const catWPM = {};
+  const catCounts = {};
+  sessions.forEach(s=>{ if(s.cat){ catWPM[s.cat]=(catWPM[s.cat]||0)+s.wpm; catCounts[s.cat]=(catCounts[s.cat]||0)+1; } });
+  const catAvg = Object.entries(catWPM).map(([c,w])=>([c,Math.round(w/catCounts[c])])).sort((a,b)=>b[1]-a[1]);
+  const maxCat = catAvg.length?catAvg[0][1]:1;
+  const colors = ['#e8a020','#4a9e6a','#4a80b8','#c0453a','#7f77dd','#e87820'];
+  document.getElementById('cat-bars').innerHTML = catAvg.length ?
+    catAvg.map(([c,w],i)=>`
+      <div class="cat-bar-row">
+        <div class="cbr-head"><span class="cbr-name" style="text-transform:capitalize">${c}</span><span class="cbr-val">${w} WPM</span></div>
+        <div class="cbr-track"><div class="cbr-fill" style="width:${Math.round((w/maxCat)*100)}%;background:${colors[i%colors.length]}"></div></div>
+      </div>`).join('') :
+    '<p style="font-family:Crimson Pro,serif;color:var(--cream-muted);font-size:15px">No category data yet.</p>';
+}
+
+function renderEmpty(){
+  document.getElementById('wpm-chart').innerHTML = '<div style="width:100%;text-align:center;padding:40px 0;font-family:Crimson Pro,serif;color:var(--cream-muted);font-size:15px">Complete a practice session to see your WPM history.</div>';
+}
+
+async function clearData(){
+  if(confirm('Clear all session data?')){
+    try{
+      await clearUserSessions();
+    }catch(error){
+      console.error('Failed to clear remote sessions', error);
+      localStorage.removeItem('tf_sessions');
+    }
+    location.reload();
+  }
+}
+
+loadStats();
+</script>
+</body>
+</html>

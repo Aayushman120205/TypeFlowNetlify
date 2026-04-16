@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Login — TypeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+body { display:flex; min-height:100vh; flex-direction:column; }
+
+.auth-wrap {
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  min-height:calc(100vh - 61px);
+}
+
+/* LEFT SIDE — branding */
+.auth-left {
+  background: var(--ink2);
+  border-right:1px solid var(--border-dim);
+  padding:60px 56px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+}
+
+.auth-left::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse 70% 60% at 30% 40%, rgba(232,160,32,0.05) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+.brand-quote {
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(32px,4vw,52px);
+  color:var(--cream);
+  line-height:1.1;
+  letter-spacing:-0.01em;
+  margin-bottom:20px;
+}
+
+.brand-quote em { color:var(--amber); font-style:italic; }
+
+.brand-sub {
+  font-family:'Crimson Pro',serif;
+  font-size:17px;
+  color:var(--cream-muted);
+  line-height:1.7;
+  max-width:380px;
+}
+
+.stats-row {
+  display:flex;
+  gap:32px;
+  padding-top:40px;
+  border-top:1px solid var(--border-dim);
+}
+
+.stat-it { }
+.stat-it .n { font-family:'DM Serif Display',serif; font-size:32px; color:var(--amber); line-height:1; }
+.stat-it .l { font-size:10px; color:var(--cream-muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; }
+
+.testimonial-card {
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  border-left:2px solid var(--amber);
+  padding:18px 20px;
+  margin-top:28px;
+}
+
+.tc-text { font-family:'Crimson Pro',serif; font-style:italic; font-size:15px; color:var(--cream-dim); line-height:1.7; margin-bottom:10px; }
+.tc-by { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--amber); }
+
+/* RIGHT SIDE — form */
+.auth-right {
+  padding:60px 56px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.auth-tabs {
+  display:flex;
+  gap:0;
+  margin-bottom:36px;
+  border-bottom:1px solid var(--border-dim);
+}
+
+.atab {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  padding:12px 24px;
+  background:transparent;
+  border:none;
+  color:var(--cream-muted);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all 0.15s;
+  margin-bottom:-1px;
+}
+
+.atab:hover { color:var(--cream-dim); }
+.atab.on { color:var(--amber); border-bottom-color:var(--amber); }
+
+.auth-form { display:none; flex-direction:column; gap:18px; }
+.auth-form.show { display:flex; }
+
+.form-title {
+  font-family:'DM Serif Display',serif;
+  font-size:28px;
+  color:var(--cream);
+  margin-bottom:4px;
+}
+
+.form-sub {
+  font-family:'Crimson Pro',serif;
+  font-size:15px;
+  color:var(--cream-muted);
+  margin-bottom:8px;
+}
+
+.field { display:flex; flex-direction:column; gap:6px; }
+
+.field-label {
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--cream-muted);
+}
+
+.field-input {
+  background:var(--ink3);
+  border:1px solid var(--border-dim);
+  color:var(--cream);
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;
+  padding:12px 14px;
+  outline:none;
+  transition:border-color 0.15s;
+  caret-color:var(--amber);
+  width:100%;
+}
+
+.field-input:focus { border-color:rgba(232,160,32,0.4); }
+.field-input.err-field { border-color:rgba(192,69,58,0.5); }
+.field-input::placeholder { color:var(--cream-muted); opacity:0.5; }
+
+.field-hint { font-size:10px; color:var(--cream-muted); }
+.field-err { font-size:10px; color:var(--red); display:none; }
+.field-err.show { display:block; }
+
+.submit-btn {
+  background:var(--amber);
+  color:var(--ink);
+  border:none;
+  padding:14px 32px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.18s;
+  width:100%;
+  margin-top:4px;
+}
+
+.submit-btn:hover { background:var(--amber-bright); }
+.submit-btn:active { transform:scale(0.99); }
+
+.or-divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:10px;
+  color:var(--cream-muted);
+  letter-spacing:0.1em;
+}
+
+.or-divider::before, .or-divider::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border-dim);
+}
+
+.guest-btn {
+  background:transparent;
+  border:1px solid var(--border-mid);
+  color:var(--cream-dim);
+  padding:12px 32px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.15s;
+  width:100%;
+  text-decoration:none;
+  display:block;
+  text-align:center;
+}
+
+.guest-btn:hover { border-color:var(--amber); color:var(--amber); }
+
+/* avatar picker */
+.avatar-row { display:flex; gap:10px; flex-wrap:wrap; }
+
+.av-opt {
+  width:42px; height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:all 0.15s;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.av-opt.picked { border-color:var(--amber); box-shadow:0 0 0 2px rgba(232,160,32,0.2); }
+
+/* strength meter */
+.strength-bar { height:3px; background:var(--ink5); margin-top:6px; }
+.strength-fill { height:100%; transition:width 0.3s, background 0.3s; width:0%; }
+
+/* success screen */
+.success-screen {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:16px;
+  padding:20px 0;
+}
+
+.success-screen.show { display:flex; }
+
+.success-icon {
+  width:64px; height:64px;
+  border-radius:50%;
+  background:rgba(74,158,106,0.12);
+  border:1px solid rgba(74,158,106,0.3);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  color:var(--green);
+  animation:fadeUp 0.4s ease both;
+}
+
+.success-title { font-family:'DM Serif Display',serif; font-size:26px; color:var(--cream); }
+.success-sub { font-family:'Crimson Pro',serif; font-size:15px; color:var(--cream-muted); }
+</style>
+</head>
+<body>
+<div id="nav-mount"></div>
+
+<div class="auth-wrap">
+
+  <!-- LEFT -->
+  <div class="auth-left">
+    <div>
+      <p style="font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:20px;display:flex;align-items:center;gap:10px"><span style="width:24px;height:1px;background:var(--amber);display:inline-block"></span>Precision typing trainer</p>
+      <div class="brand-quote">Type <em>faster.</em><br>Think <em>clearer.</em><br>Track <em>everything.</em></div>
+      <p class="brand-sub">Join 12,000+ typists improving their speed with real-time analytics, adaptive passages, and targeted drills.</p>
+
+      <div class="testimonial-card">
+        <p class="tc-text">"Went from 72 to 118 WPM in six weeks. The keystroke analytics alone are worth it."</p>
+        <div class="tc-by">Priya K. — Software Engineer, 118 WPM</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-it"><div class="n">12K+</div><div class="l">Active typists</div></div>
+      <div class="stat-it"><div class="n">142</div><div class="l">Avg WPM gained</div></div>
+      <div class="stat-it"><div class="n">98%</div><div class="l">Accuracy boost</div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="auth-right">
+    <div style="max-width:420px;width:100%;margin:0 auto">
+
+      <div class="auth-tabs">
+        <button class="atab on" onclick="switchTab('login')">Sign In</button>
+        <button class="atab" onclick="switchTab('register')">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div class="auth-form show" id="form-login">
+        <div>
+          <div class="form-title">Welcome back</div>
+          <div class="form-sub">Sign in to access your stats, streaks, and contests.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Username or Email</div>
+          <input class="field-input" id="l-user" type="text" placeholder="your_username" autocomplete="username">
+          <div class="field-err" id="l-user-err">Please enter your username or email.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Password</div>
+          <input class="field-input" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+          <div class="field-err" id="l-pass-err">Password is required.</div>
+          <div style="text-align:right;margin-top:2px"><span style="font-size:10px;color:var(--amber);cursor:pointer;letter-spacing:0.06em" onclick="forgotPw()">Forgot password?</span></div>
+        </div>
+
+        <button class="submit-btn" onclick="doLogin()">Sign In →</button>
+
+        <div class="or-divider">or</div>
+        <a href="index.html" class="guest-btn">Continue as Guest</a>
+
+        <div style="text-align:center;font-size:11px;color:var(--cream-muted)">
+          No account? <span style="color:var(--amber);cursor:pointer" onclick="switchTab('register')">Create one free →</span>
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div class="auth-form" id="form-register">
+        <div>
+          <div class="form-title">Create your account</div>
+          <div class="form-sub">Free forever. No credit card. Just typing.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Display Name</div>
+          <input class="field-input" id="r-name" type="text" placeholder="TypeFlowUser" oninput="updatePreview()">
+          <div class="field-err" id="r-name-err">Name must be 3–20 characters.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Choose Avatar Colour</div>
+          <div class="avatar-row" id="av-row"></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Email</div>
+          <input class="field-input" id="r-email" type="email" placeholder="you@example.com">
+          <div class="field-err" id="r-email-err">Please enter a valid email.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Password</div>
+          <input class="field-input" id="r-pass" type="password" placeholder="min 8 characters" oninput="checkStrength(this.value)">
+          <div class="strength-bar"><div class="strength-fill" id="str-fill"></div></div>
+          <div class="field-hint" id="str-lbl">— password strength</div>
+          <div class="field-err" id="r-pass-err">Password must be at least 8 characters.</div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Confirm Password</div>
+          <input class="field-input" id="r-pass2" type="password" placeholder="repeat password">
+          <div class="field-err" id="r-pass2-err">Passwords don't match.</div>
+        </div>
+
+        <button class="submit-btn" onclick="doRegister()">Create Account →</button>
+
+        <div class="or-divider">or</div>
+        <a href="index.html" class="guest-btn">Continue as Guest</a>
+
+        <div style="text-align:center;font-size:11px;color:var(--cream-muted)">
+          Already have an account? <span style="color:var(--amber);cursor:pointer" onclick="switchTab('login')">Sign in →</span>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="success-screen">
+        <div class="success-icon">✓</div>
+        <div class="success-title" id="success-title">Welcome to TypeFlow</div>
+        <p class="success-sub" id="success-sub">Your account is ready. Redirecting to your dashboard...</p>
+        <a href="index.html" class="submit-btn" style="display:block;text-align:center;text-decoration:none;padding:14px">Go to Dashboard →</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script src="api.js"></script>
+<script>
+document.getElementById('nav-mount').innerHTML = NAV_HTML('');
+
+const AV_COLORS = [
+  {bg:'#185FA520',border:'#185FA5',text:'#85B7EB'},
+  {bg:'#0F6E5620',border:'#1D9E75',text:'#5DCAA5'},
+  {bg:'#71130820',border:'#D85A30',text:'#F0997B'},
+  {bg:'#534AB720',border:'#7F77DD',text:'#AFA9EC'},
+  {bg:'#3B6D1120',border:'#639922',text:'#97C459'},
+  {bg:'#63380620',border:'#BA7517',text:'#EF9F27'},
+  {bg:'#A32D2D20',border:'#E24B4A',text:'#F09595'},
+  {bg:'#44444120',border:'#888780',text:'#B4B2A9'},
+];
+
+let pickedAv = 0;
+
+function buildAvatars(){
+  const name = document.getElementById('r-name').value||'TF';
+  const initials = name.slice(0,2).toUpperCase()||'TF';
+  document.getElementById('av-row').innerHTML = AV_COLORS.map((c,i)=>`
+    <div class="av-opt ${i===pickedAv?'picked':''}" style="background:${c.bg};border-color:${i===pickedAv?c.border:'transparent'};color:${c.text}"
+      onclick="pickAv(${i},'${c.bg}','${c.border}','${c.text}')">${initials}</div>`).join('');
+}
+
+function pickAv(i){ pickedAv=i; buildAvatars(); }
+function updatePreview(){ buildAvatars(); }
+buildAvatars();
+
+function switchTab(t){
+  document.querySelectorAll('.atab').forEach((b,i)=>b.classList.toggle('on',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('form-login').classList.toggle('show',t==='login');
+  document.getElementById('form-register').classList.toggle('show',t==='register');
+}
+
+function checkStrength(pw){
+  const fill = document.getElementById('str-fill');
+  const lbl = document.getElementById('str-lbl');
+  let score=0;
+  if(pw.length>=8) score++;
+  if(/[A-Z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw)) score++;
+  if(/[^a-zA-Z0-9]/.test(pw)) score++;
+  const levels=[{w:'0%',c:'transparent',t:'— password strength'},{w:'25%',c:'var(--red)',t:'Weak'},{w:'50%',c:'var(--amber-dim)',t:'Fair'},{w:'75%',c:'var(--amber)',t:'Good'},{w:'100%',c:'var(--green)',t:'Strong'}];
+  const l=levels[score];
+  fill.style.width=l.w; fill.style.background=l.c; lbl.textContent=l.t;
+}
+
+function showErr(id, show){ document.getElementById(id).classList.toggle('show',show); document.getElementById(id.replace('-err','')).classList.toggle('err-field',show); }
+function clearErrs(ids){ ids.forEach(id=>showErr(id,false)); }
+
+async function doLogin(){
+  const user=document.getElementById('l-user').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  clearErrs(['l-user-err','l-pass-err']);
+  let ok=true;
+  if(!user){ showErr('l-user-err',true); ok=false; }
+  if(!pass){ showErr('l-pass-err',true); ok=false; }
+  if(!ok) return;
+  try{
+    const found = await loginUser({ user, password: pass });
+    showSuccess('Welcome back, '+found.name+'!','Loading your dashboard...');
+  }catch(error){
+    if(error.message.includes('No account')){
+      showErr('l-user-err',true);
+      document.getElementById('l-user-err').textContent=error.message;
+      return;
+    }
+    if(error.message.includes('Incorrect password')){
+      showErr('l-pass-err',true);
+      document.getElementById('l-pass-err').textContent=error.message;
+      return;
+    }
+    alert(error.message);
+  }
+}
+
+async function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  clearErrs(['r-name-err','r-email-err','r-pass-err','r-pass2-err']);
+  let ok=true;
+  if(name.length<3||name.length>20){ showErr('r-name-err',true); ok=false; }
+  if(!/\S+@\S+\.\S+/.test(email)){ showErr('r-email-err',true); ok=false; }
+  if(pass.length<8){ showErr('r-pass-err',true); ok=false; }
+  if(pass!==pass2){ showErr('r-pass2-err',true); ok=false; }
+  if(!ok) return;
+  const av=AV_COLORS[pickedAv];
+  try{
+    await registerUser({
+      name,
+      email,
+      password: pass,
+      avatar: { bg: av.bg, border: av.border, text: av.text }
+    });
+    showSuccess('Account created!','Welcome to TypeFlow, '+name+'. Your journey starts now.');
+  }catch(error){
+    if(error.message.includes('Email already in use')){
+      showErr('r-email-err',true);
+      document.getElementById('r-email-err').textContent=error.message;
+      return;
+    }
+    alert(error.message);
+  }
+}
+
+function showSuccess(title, sub){
+  document.getElementById('form-login').classList.remove('show');
+  document.getElementById('form-register').classList.remove('show');
+  document.getElementById('success-title').textContent=title;
+  document.getElementById('success-sub').textContent=sub;
+  document.getElementById('success-screen').classList.add('show');
+  setTimeout(()=>{ window.location.href='index.html'; }, 2800);
+}
+
+function forgotPw(){
+  const user=document.getElementById('l-user').value.trim();
+  if(!user){ showErr('l-user-err',true); document.getElementById('l-user-err').textContent='Enter your email first.'; return; }
+  alert('Password reset link would be sent to: '+user);
+}
+</script>
+</body>
+</html>
