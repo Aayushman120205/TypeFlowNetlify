@@ -1,14 +1,36 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "public": false,
+  "public": true,
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
       "maxDuration": 30
     }
   },
+  "rewrites": [
+    {
+      "source": "/api/auth",
+      "destination": "/api/auth.js"
+    },
+    {
+      "source": "/api/sessions",
+      "destination": "/api/sessions.js"
+    },
+    {
+      "source": "/api/leaderboard",
+      "destination": "/api/leaderboard.js"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/health.js"
+    },
+    {
+      "source": "/(.*\\.html)?",
+      "destination": "/$1"
+    }
+  ],
   "env": {
     "MONGODB_URI": "@mongodb_uri"
   }
 }
+
