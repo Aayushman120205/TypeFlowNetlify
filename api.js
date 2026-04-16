@@ -26,7 +26,7 @@ function setCurrentUser(user) {
 }
 
 async function registerUser(payload) {
-  const data = await apiRequest("/auth/register", {
+  const data = await apiRequest("/auth?action=register", {
     method: "POST",
     body: JSON.stringify(payload)
   });
@@ -35,7 +35,7 @@ async function registerUser(payload) {
 }
 
 async function loginUser(payload) {
-  const data = await apiRequest("/auth/login", {
+  const data = await apiRequest("/auth?action=login", {
     method: "POST",
     body: JSON.stringify(payload)
   });
