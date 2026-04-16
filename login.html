@@ -503,7 +503,9 @@ function showSuccess(title, sub){
   document.getElementById('success-title').textContent=title;
   document.getElementById('success-sub').textContent=sub;
   document.getElementById('success-screen').classList.add('show');
-  setTimeout(()=>{ window.location.href='index.html'; }, 2800);
+  const urlParams = new URLSearchParams(window.location.search);
+  const returnTo = urlParams.get('returnTo') ? decodeURIComponent(urlParams.get('returnTo')) : 'index.html';
+  setTimeout(()=>{ window.location.href=returnTo; }, 2800);
 }
 
 function forgotPw(){

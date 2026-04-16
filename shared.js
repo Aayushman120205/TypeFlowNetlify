@@ -121,3 +121,13 @@ function signOutUser() {
   localStorage.removeItem("tf_current_user");
   location.reload();
 }
+
+function requireAuth() {
+  const user = JSON.parse(localStorage.getItem('tf_current_user')||'null');
+  if (!user) {
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `login.html?returnTo=${returnTo}`;
+    return false;
+  }
+  return true;
+}

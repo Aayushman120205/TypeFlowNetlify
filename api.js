@@ -67,6 +67,7 @@ async function getUserSessions() {
 
   const data = await apiRequest(`/sessions?userId=${encodeURIComponent(user.id)}`);
     return data.sessions.map((session) => ({
+      userId: user.id,
       date: session.createdAtClient || session.createdAt,
       wpm: session.wpm,
       acc: session.acc,

@@ -339,6 +339,7 @@
 <script src="shared.js"></script>
 <script src="api.js"></script>
 <script>
+if(!requireAuth()) throw new Error('Redirecting to login');
 document.getElementById('nav-mount').innerHTML = NAV_HTML('leaderboard');
 document.getElementById('footer-mount').innerHTML = FOOTER_HTML;
 
@@ -520,6 +521,7 @@ async function hydrateLeaderboard(){
           streak:`${sessions.length}x`,
           tags:['You'],
           isMe:true,
+          userId: user?.id,
           avBg:user?.avBg,
           avBorder:user?.avBorder,
           avText:user?.avText
@@ -538,11 +540,19 @@ async function hydrateLeaderboard(){
         document.getElementById('yr-wpm').textContent='Best WPM: '+bestWPM;
       }
 
+      // Calculate daily rank for current user
       const todaysSessions = sessions.filter(session => session.mode === 'daily-challenge' && session.challengeKey === dailyChallenge.key);
       const dailyBest = todaysSessions.length ? Math.max(...todaysSessions.map(session => session.wpm)) : null;
       if(dailyBest !== null){
-        const allWPMs = [148,145,139,132,127,122,118,dailyBest].sort((a,b)=>b-a);
-        document.getElementById('my-daily-rank').textContent = '#'+(allWPMs.indexOf(dailyBest)+1);
+        // Get all ranking users' daily best scores (from remoteLeaderboard if available)
+        // For now, approximate with hardcoded top scores plus user's score
+        const topDailyScores = [148, 145, 139, 132, 127, 122, 118]; // Sample top scores
+        const allDailyScores = [...topDailyScores, dailyBest].sort((a, b) => b - a);
+        let dailyRank = 1;
+        allDailyScores.forEach((score, i) => {
+          if(score === dailyBest) dailyRank = i + 1;
+        });
+        document.getElementById('my-daily-rank').textContent = '#' + dailyRank;
       } else {
         document.getElementById('my-daily-rank').textContent = '—';
       }
@@ -578,6 +588,34 @@ async function hydrateLeaderboard(){
 }
 
 hydrateLeaderboard();
+
+// Auto-refresh when page becomes visible (user returns from practice.html)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    console.log('Leaderboard: page became visible, refreshing...');
+    hydrateLeaderboard();
+  }
+});
+
+// Poll for updates every 30 seconds
+setInterval(() => {
+  if (!document.hidden) {
+    hydrateLeaderboard();
+  }
+}, 30000);
+
+// Refresh when storage changes (from another tab/window)
+window.addEventListener('storage', (event) => {
+  if (event.key === 'tf_sessions' || event.key === 'tf_current_user') {
+    console.log('Storage changed, refreshing leaderboard...');
+    hydrateLeaderboard();
+  }
+});
+
+// Also refresh when window regains focus
+window.addEventListener('focus', () => {
+  hydrateLeaderboard();
+});
 </script>
 </body>
 </html>
