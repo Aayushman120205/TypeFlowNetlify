@@ -2,10 +2,9 @@
   "name": "typeflow-v2",
   "version": "1.0.0",
   "description": "TypeFlow typing trainer with Node.js and MongoDB backend",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "start": "node server.local.js",
+    "dev": "node --watch server.local.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
