@@ -1,6 +1,10 @@
 {
   "version": 2,
   "public": true,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "installCommand": "npm install",
+  "framework": null,
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
