@@ -24,7 +24,11 @@ module.exports = async function handler(req, res) {
   await connectDB();
 
   if (req.method === "POST") {
-    const { action } = req.query;
+    // Support both /api/auth/register (path) and /api/auth?action=register (query)
+    const urlParts = req.url.split("?")[0].split("/");
+    const lastSegment = urlParts[urlParts.length - 1];
+    const pathAction = (lastSegment !== "auth" && lastSegment !== "auth.js") ? lastSegment : undefined;
+    const action = req.query.action || pathAction;
 
     if (action === "register") {
       try {

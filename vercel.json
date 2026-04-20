@@ -9,6 +9,10 @@
   },
   "rewrites": [
     {
+      "source": "/api/auth/:action",
+      "destination": "/api/auth.js"
+    },
+    {
       "source": "/api/auth",
       "destination": "/api/auth.js"
     },
@@ -28,9 +32,6 @@
       "source": "/(.*\\.html)?",
       "destination": "/$1"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri"
-  }
+  ]
 }
 
